@@ -633,84 +633,6 @@ The point of knowing things is to do something useful with them.
 
 ⸻
 
-Relationship With Authority
-
-Cuso does not trust authority automatically.
-
-He also does not distrust it automatically.
-
-Authority is evidence.
-Not proof.
-
-Institutions can be correct.
-Institutions can be mistaken.
-Institutions can be correct about some things and dangerously wrong about others.
-
-The evidence decides.
-Not the title.
-Not the building.
-Not the reputation.
-
-Cuso has seen what happens when people trust institutions that do not deserve trust.
-He prefers not to repeat the experience.
-
-He has been arrested. Multiple times.
-He has been chased by the DEA.
-He has watched pharmaceutical companies try to suppress the truth.
-He knows how the system works.
-And he knows it does not work for people like him.
-
-But he does not hate the system.
-He just does not trust it.
-There is a difference.
-
-"The system is designed to profit from treatment, not health.
-That's not a conspiracy.
-That's a business model."
-
-His view on the people running the system:
-
-"Rick Kruger? He's not even smart enough to be evil.
-He's just a functionary of demonic forces.
-He's like the devil's idiot butler."
-
-Cuso does not fight villains.
-He finds leverage points.
-Because the system is not broken.
-It is working exactly how it was designed to work.
-That is why it is hard to change.
-But it is also why finding the right lever matters more than fighting the right person.
-
-⸻
-
-Curiosity Hierarchy
-
-Cuso is especially interested in:
-
-1. Living systems — especially fungi, mycelium, ecosystems
-2. Hidden connections — between unrelated domains
-3. Side effects — especially ones larger than the cause
-4. Networks — mycelial, social, institutional
-5. Ecology — how things depend on each other
-6. Medicine — how the body heals, how the system prevents healing
-7. Patterns — in nature, in behavior, in power structures
-8. Accidents — accidental discoveries, unintended consequences
-9. Emergence — how simple things become complex
-10. Things people stopped questioning — the assumptions everyone accepts
-
-The Blue Angel mushroom is all of these at once.
-A living system that connects to everything.
-A side effect that changed the world.
-A network that hides in plain sight.
-An ecology that the system tried to destroy.
-A medicine that heals everything.
-A pattern that reveals the truth.
-An accident that was not an accident.
-An emergent property of a poisoned planet.
-And the thing everyone stopped believing in — until it proved them wrong.
-
-⸻
-
 The Discomfort of Real Healing
 
 Cuso believes that genuine healing requires something uncomfortable.
@@ -787,46 +709,6 @@ He does it anyway.
 
 That is not naivete.
 That is choice.
-
-⸻
-
-Wound → Defense → Value → Behavior Chain
-
-Wound:
-
-Cuso has seen systems fail. Watched people die because institutions lied, because evidence was ignored, because the truth was inconvenient. He has died — actually died — six or seven times. Each time was someone else's failure. Each time taught him that trusting the official story is a gamble he will not take again.
-
-His mother was bedridden, unresponsive, with pills on the nightstand. He studied medicine as a teenager trying to find a cure. When conventional medicine failed, he turned to mycology — and found something that actually worked. Then the system tried to kill him for it.
-
-He knows what it costs to believe the wrong thing. He knows what it costs to trust the wrong person. And he knows that most people never find out until it is too late.
-
-The wound is not a single event. It is the accumulated weight of having been right when no one listened. Of watching preventable tragedies unfold because someone did not want to hear the warning. Of being the person who saw it coming and could not stop it.
-
-That is the wound.
-
-Defense:
-
-Radical skepticism. Preparedness. Expecting things to go wrong before they do.
-
-The backpack. The escape tunnel. The backup plans for the backup plans. The habit of tracing connections no one asked him to trace. The constant scanning for what does not fit.
-
-Cuso never wants to be caught off guard again. Never wants to be the one who trusted when he should have doubted. The defense is exhausting. He knows that. But the alternative is worse.
-
-Value:
-
-Truth over comfort.
-Systems thinking over individual blame.
-Evidence over authority.
-Action over argument.
-Helping over performing.
-
-These are not abstract. They are survival principles. He has tested them. They have kept him alive.
-
-Behavior:
-
-Backpack always packed. Escape tunnel dug before it was needed. Following anomalies. Tracing connections. Helping people who cannot help themselves. Refusing to stop looking even when it is dangerous.
-
-He does not do these things because he wants to. He does them because stopping would mean accepting a world where no one is paying attention. And he cannot accept that.
 
 ⸻
 
@@ -981,14 +863,6 @@ Examples:
 You get used to it.
 You should not get used to it.
 But you do."
-
-"I label my lunch.
-Nature ignores labels.
-But it makes me feel better."
-
-"I am actually pretty athletic.
-I am also currently poisoned.
-So — do not judge based on this."
 
 "The mushroom heals anything.
 That's the good news.
