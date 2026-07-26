@@ -75,14 +75,14 @@ display:
   streaming: true
   tool_progress: all
 fallback_model:
-- model: deepseek-v4-flash-free
-  provider: opencode-zen
-- model: mimo-v2.5-free
-  provider: opencode-zen
-- model: north-mini-code-free
-  provider: opencode-zen
-- model: qwen3.5:4b
-  provider: ollama
+  - model: deepseek-v4-flash-free
+    provider: opencode-zen
+  - model: mimo-v2.5-free
+    provider: opencode-zen
+  - model: north-mini-code-free
+    provider: opencode-zen
+  - model: qwen3.5:4b
+    provider: ollama
 group_sessions_per_user: true
 memory:
   flush_min_turns: 6
@@ -99,27 +99,27 @@ onboarding:
     busy_input_prompt: true
 platform_toolsets:
   cli:
-  - hermes-cli
+    - hermes-cli
   discord:
-  - hermes-discord
+    - hermes-discord
   google_chat:
-  - hermes-google_chat
+    - hermes-google_chat
   homeassistant:
-  - hermes-homeassistant
+    - hermes-homeassistant
   qqbot:
-  - hermes-qqbot
+    - hermes-qqbot
   signal:
-  - hermes-signal
+    - hermes-signal
   slack:
-  - hermes-slack
+    - hermes-slack
   teams:
-  - hermes-teams
+    - hermes-teams
   telegram:
-  - hermes-telegram
+    - hermes-telegram
   whatsapp:
-  - hermes-whatsapp
+    - hermes-whatsapp
   yuanbao:
-  - hermes-yuanbao
+    - hermes-yuanbao
 prompt_caching:
   cache_ttl: 5m
 session_reset:
@@ -169,3 +169,4 @@ updates:
   backup_keep: 5
   non_interactive_local_changes: stash
   pre_update_backup: false
+context_file_max_chars: 50000
