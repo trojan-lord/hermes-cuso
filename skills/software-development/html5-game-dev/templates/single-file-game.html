@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Title</title>
+  <script>p5.disableFriendlyErrors = true;</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+  <style>html,body{margin:0;padding:0;overflow:hidden;background:#000}canvas{display:block}</style>
+</head>
+<body>
+<script>
+// ============================================================
+// CONFIGURATION
+// ============================================================
+const CONFIG = {
+  width: 480,
+  height: 270,
+  gravity: 1200,
+  tile: 16,
+};
+const PALETTE = {
+  bg: '#1a1c2c',
+  ground: '#5d275d',
+  platform: '#b13e53',
+  player: '#ef7d57',
+  enemy: '#a7f070',
+  coin: '#ffcd75',
+  text: '#f4f4f4',
+  accent: '#41a6f6',
+};
+
+// ============================================================
+// UTILITIES
+// ============================================================
+const Utils = {
+  clamp(v, min, max) { return Math.max(min, Math.min(max, v)); },
+  lerp(a, b, t) { return a + (b - a) * t; },
+  randomRange(min, max) { return Math.random() * (max - min) + min; },
+  randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; },
+  easeOutQuad(t) { return t * (2 - t); },
+};
+
+// ============================================================
+// INPUT SYSTEM
+// ============================================================
+class Input {
+  constructor() {
+    this.keys = {};
+    this.justPressed = {};
+    this.justReleased = {};
+    window.addEventListener('keydown', e => {
+      if (!this.keys[e.code]) this.justPressed[e.code] = true;
+      this.keys[e.code] = true;
+      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+    });
+    window.addEventListener('keyup', e => {
+      this.keys[e.code] = false;
+      this.justReleased[e.code] = true;
+    });
+  }
+  isDown(code) { return !!this.keys[code]; }
+  pressed(code) { return !!this.justPressed[code]; }
+  get left() { return this.isDown('ArrowLeft') || this.isDown('KeyA'); }
+  get right() { return this.isDown('ArrowRight') || this.isDown('KeyD'); }
+  get up() { return this.isDown('ArrowUp') || this.isDown('KeyW'); }
+  get down() { return this.isDown('ArrowDown') || this.isDown('KeyS'); }
+  get jump() { return this.pressed('Space') || this.pressed('KeyW') || this.pressed('ArrowUp'); }
+  get attack() { return this.pressed('KeyZ') || this.pressed('KeyJ'); }
+  get pause() { return this.pressed('Escape') || this.pressed('KeyP'); }
+  endFrame() { this.justPressed = {}; this.justReleased = {}; }
+}
+const input = new Input();
+
+// ============================================================
+// AUDIO (procedural 8-bit)
+// ============================================================
+let audioCtx;
+function initAudio() { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type = 'square', vol = 0.3) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type; osc.frequency.value = freq;
+  gain.gain.value = vol;
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + dur);
+}
+const SFX = {
+  jump() { playTone(440, 0.1); setTimeout(() => playTone(660, 0.12), 50); },
+  hit() { playTone(200, 0.15, 'sawtooth', 0.4); },
+  pickup() { playTone(880, 0.08); setTimeout(() => playTone(1100, 0.1), 80); },
+};
+
+// ============================================================
+// SPRITE ANIMATION
+// ============================================================
+class AnimatedSprite {
+  constructor(sheetImg, frameW, frameH, frameRate = 10) {
+    this.img = sheetImg;
+    this.frameW = frameW; this.frameH = frameH;
+    this.cols = Math.floor(sheetImg.width / frameW);
+    this.totalFrames = Math.floor(sheetImg.width / frameW) * Math.floor(sheetImg.height / frameH);
+    this.frameRate = frameRate;
+    this.currentFrame = 0; this.elapsed = 0; this.finished = false;
+    this.flipX = false;
+  }
+  update(dt) {
+    this.elapsed += dt;
+    if (this.elapsed >= 1 / this.frameRate) {
+      this.elapsed -= 1 / this.frameRate;
+      this.currentFrame++;
+      if (this.currentFrame >= this.totalFrames) { this.currentFrame = 0; this.finished = true; }
+    }
+  }
+  draw(g, x, y, scale = 1) {
+    const col = this.currentFrame % this.cols;
+    const row = Math.floor(this.currentFrame / this.cols);
+    g.push();
+    if (this.flipX) {
+      g.translate(x + this.frameW * scale, y); g.scale(-1, 1);
+      g.image(this.img, 0, 0, this.frameW * scale, this.frameH * scale, col * this.frameW, row * this.frameH, this.frameW, this.frameH);
+    } else {
+      g.image(this.img, x, y, this.frameW * scale, this.frameH * scale, col * this.frameW, row * this.frameH, this.frameW, this.frameH);
+    }
+    g.pop();
+  }
+  reset() { this.currentFrame = 0; this.elapsed = 0; this.finished = false; }
+}
+
+// ============================================================
+// STATE MACHINE
+// ============================================================
+class StateMachine {
+  constructor() { this.states = {}; this.current = null; this.name = ''; }
+  add(name, state) { this.states[name] = state; }
+  switch(name, ctx) {
+    if (this.current?.exit) this.current.exit(ctx);
+    this.name = name;
+    this.current = this.states[name];
+    if (this.current?.enter) this.current.enter(ctx);
+  }
+  update(dt, ctx) { this.current?.update?.(dt, ctx); }
+  render(ctx) { this.current?.render?.(ctx); }
+}
+
+// ============================================================
+// CAMERA
+// ============================================================
+class Camera {
+  constructor(viewW, viewH, worldW, worldH) {
+    this.x = 0; this.y = 0;
+    this.viewW = viewW; this.viewH = viewH;
+    this.worldW = worldW; this.worldH = worldH;
+    this.dz = { x: viewW * 0.35, y: viewH * 0.35, w: viewW * 0.3, h: viewH * 0.3 };
+    this.shakeX = 0; this.shakeY = 0; this.shakeIntensity = 0;
+  }
+  follow(target, lerp = 0.1) {
+    let dx = 0, dy = 0;
+    const sx = target.x - this.x, sy = target.y - this.y;
+    if (sx < this.dz.x) dx = sx - this.dz.x;
+    if (sx > this.dz.x + this.dz.w) dx = sx - (this.dz.x + this.dz.w);
+    if (sy < this.dz.y) dy = sy - this.dz.y;
+    if (sy > this.dz.y + this.dz.h) dy = sy - (this.dz.y + this.dz.h);
+    this.x = Utils.clamp(this.x + dx * lerp, 0, Math.max(0, this.worldW - this.viewW));
+    this.y = Utils.clamp(this.y + dy * lerp, 0, Math.max(0, this.worldH - this.viewH));
+  }
+  shake(intensity) { this.shakeIntensity = intensity; }
+  updateShake() {
+    if (this.shakeIntensity > 0) {
+      this.shakeX = Utils.randomRange(-this.shakeIntensity, this.shakeIntensity);
+      this.shakeY = Utils.randomRange(-this.shakeIntensity, this.shakeIntensity);
+      this.shakeIntensity *= 0.9;
+      if (this.shakeIntensity < 0.5) { this.shakeIntensity = 0; this.shakeX = 0; this.shakeY = 0; }
+    }
+  }
+  begin(g) { g.push(); g.translate(-Math.round(this.x) + this.shakeX, -Math.round(this.y) + this.shakeY); }
+  end(g) { g.pop(); }
+}
+
+// ============================================================
+// ENTITIES
+// ============================================================
+class Entity {
+  constructor(x, y, w, h) {
+    this.x = x; this.y = y; this.w = w; this.h = h;
+    this.alive = true;
+    this.offset = { top: 0, bottom: 0, left: 0, right: 0 };
+  }
+  get hitbox() {
+    return { x: this.x + this.offset.left, y: this.y + this.offset.top,
+             w: this.w - this.offset.left - this.offset.right,
+             h: this.h - this.offset.top - this.offset.bottom };
+  }
+  collidesWith(other) {
+    const a = this.hitbox, b = other.hitbox;
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+}
+
+class MovableEntity extends Entity {
+  constructor(x, y, w, h) {
+    super(x, y, w, h);
+    this.vx = 0; this.vy = 0; this.onGround = false;
+    this.speed = 120; this.maxFall = 600;
+  }
+  applyGravity(dt) {
+    this.vy += CONFIG.gravity * dt;
+    if (this.vy > this.maxFall) this.vy = this.maxFall;
+  }
+}
+
+// ============================================================
+// PARTICLE SYSTEM
+// ============================================================
+class ParticleEmitter {
+  constructor() { this.particles = []; }
+  emit(config) {
+    const { x, y, count = 10, speedMin = 20, speedMax = 80, lifeMin = 0.3, lifeMax = 0.8,
+            colors = ['#fff','#ff0'], gravity = 0, angle = 0, spread = Math.PI * 2 } = config;
+    for (let i = 0; i < count; i++) {
+      const a = angle - spread/2 + Math.random() * spread;
+      const speed = speedMin + Math.random() * (speedMax - speedMin);
+      this.particles.push({ x, y, vx: Math.cos(a)*speed, vy: Math.sin(a)*speed,
+        life: lifeMin + Math.random()*(lifeMax-lifeMin), maxLife: lifeMax,
+        color: colors[Math.floor(Math.random()*colors.length)],
+        size: 1 + Math.random()*3, gravity });
+    }
+  }
+  update(dt) {
+    for (let i = this.particles.length-1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx*dt; p.y += p.vy*dt; p.vy += p.gravity*dt; p.life -= dt;
+      if (p.life <= 0) this.particles.splice(i, 1);
+    }
+  }
+  draw(g) {
+    for (const p of this.particles) {
+      g.noStroke(); g.fill(p.color);
+      g.globalAlpha = Math.max(0, p.life / p.maxLife);
+      g.rect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+    }
+    g.globalAlpha = 1;
+  }
+}
+
+// ============================================================
+// PLAYER
+// ============================================================
+class Player extends MovableEntity {
+  constructor(x, y) {
+    super(x, y, 14, 18);
+    this.hp = 5; this.maxHp = 5;
+    this.facingRight = true;
+    this.invincible = 0;
+    this.anim = new StateMachine();
+    this.offset = { top: 2, bottom: 0, left: 3, right: 3 };
+    // TODO: Add animation states (idle, walk, jump, attack, hurt, dead)
+    this.anim.add('idle', { update(dt) { /* frame timer */ } });
+  }
+  update(dt) {
+    this.vx = 0;
+    if (input.left) { this.vx = -this.speed; this.facingRight = false; }
+    if (input.right) { this.vx = this.speed; this.facingRight = true; }
+    if (input.jump && this.onGround) { this.vy = -380; this.onGround = false; SFX.jump(); }
+    this.applyGravity(dt);
+    this.invincible = Math.max(0, this.invincible - dt);
+    this.anim.update(dt, this);
+  }
+  draw(g) {
+    g.push();
+    if (!this.facingRight) { g.translate(this.x + this.w, this.y); g.scale(-1, 1); g.translate(-this.w, 0); }
+    else { g.translate(this.x, this.y); }
+    g.fill(this.invincible > 0 ? '#fffa' : PALETTE.player);
+    g.noStroke();
+    g.rect(0, 0, this.w, this.h);
+    g.pop();
+  }
+}
+
+// ============================================================
+// GAME WORLD
+// ============================================================
+class GameWorld {
+  constructor() {
+    this.player = null;
+    this.enemies = [];
+    this.camera = new Camera(CONFIG.width, CONFIG.height, 2000, CONFIG.height);
+    this.particles = new ParticleEmitter();
+    this.score = 0;
+    this.state = new StateMachine();
+    this.setupStates();
+  }
+  setupStates() {
+    this.state.add('menu', {
+      enter() {},
+      update(dt) { if (input.jump || input.attack) { if (!audioCtx) initAudio(); game.state.switch('playing'); } },
+      render(g) { g.fill(PALETTE.text); g.noStroke(); g.textAlign(CENTER); g.textSize(20); g.text('GAME TITLE', CONFIG.width/2, CONFIG.height/2 - 20); g.textSize(12); g.text('Press SPACE to start', CONFIG.width/2, CONFIG.height/2 + 20); }
+    });
+    this.state.add('playing', {
+      enter() { game.reset(); },
+      update(dt) {
+        game.player.update(dt);
+        // TODO: resolve collisions, update enemies, check pickups
+        game.camera.follow(game.player);
+        game.camera.updateShake();
+        game.particles.update(dt);
+        if (input.pause) game.state.switch('paused');
+      },
+      render(g) {
+        g.background(PALETTE.bg);
+        game.camera.begin(g);
+        // TODO: draw tilemap layers, enemies, pickups
+        game.player.draw(g);
+        game.particles.draw(g);
+        game.camera.end(g);
+        // HUD
+        g.fill(PALETTE.text); g.noStroke(); g.textAlign(LEFT); g.textSize(10);
+        g.text('HP: ' + game.player.hp + '/' + game.player.maxHp, 8, 12);
+        g.text('Score: ' + game.score, 8, 24);
+      }
+    });
+    this.state.add('paused', {
+      update(dt) { if (input.pause || input.jump) game.state.switch('playing'); },
+      render(g) { g.fill(0, 0, 0, 150); g.noStroke(); g.rect(0, 0, CONFIG.width, CONFIG.height); g.fill(PALETTE.text); g.textAlign(CENTER); g.textSize(16); g.text('PAUSED', CONFIG.width/2, CONFIG.height/2); }
+    });
+    this.state.add('gameOver', {
+      enter() { SFX.hit(); },
+      update(dt) { if (input.jump) game.state.switch('menu'); },
+      render(g) { g.fill(PALETTE.text); g.textAlign(CENTER); g.textSize(16); g.text('GAME OVER', CONFIG.width/2, CONFIG.height/2 - 10); g.textSize(10); g.text('Score: ' + game.score, CONFIG.width/2, CONFIG.height/2 + 10); g.text('Press SPACE', CONFIG.width/2, CONFIG.height/2 + 30); }
+    });
+  }
+  reset() {
+    this.player = new Player(100, CONFIG.height - 80);
+    this.enemies = [];
+    this.score = 0;
+    this.particles = new ParticleEmitter();
+    // TODO: generate or load level
+  }
+  update(dt) { this.state.update(dt, this); }
+  render(g) { this.state.render(g); }
+}
+
+// ============================================================
+// GAME INSTANCE & P5.JS HOOKS
+// ============================================================
+const FIXED_DT = 1 / 60;
+let game;
+let accumulator = 0;
+let lastTime = 0;
+
+function setup() {
+  createCanvas(CONFIG.width, CONFIG.height);
+  pixelDensity(1);
+  noSmooth();
+  imageMode(CORNER);
+  game = new GameWorld();
+  game.state.switch('menu');
+  lastTime = performance.now() / 1000;
+}
+
+function draw() {
+  const now = performance.now() / 1000;
+  const rawDt = now - lastTime;
+  lastTime = now;
+  accumulator += Math.min(rawDt, 0.1);
+
+  while (accumulator >= FIXED_DT) {
+    game.update(FIXED_DT);
+    input.endFrame();
+    accumulator -= FIXED_DT;
+  }
+  game.render(this);
+}
+
+function keyPressed() {
+  // p5.js key hooks — feed into Input if needed, or handle directly
+}
+
+function windowResized() {
+  // Handle resize if using responsive canvas
+}
+</script>
+</body>
+</html>

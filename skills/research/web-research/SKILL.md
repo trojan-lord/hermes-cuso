@@ -1,0 +1,464 @@
+---
+name: web-research
+description: Research topics across web sources when standard search engines are blocked or inadequate. Multi-source triangulation, fallback search engines, transcript/media databases, fan wikis, and source reliability assessment. Use when user asks to research a topic, find information about X, build a character/concept analysis, or gather data that requires visiting multiple websites.
+tags: [research, web, search, scraping, character-analysis, media]
+---
+
+# Web Research
+
+Multi-source web research methodology for building comprehensive knowledge on a topic — especially when Google and common sources are blocked by bot detection.
+
+## When to Load
+
+- User asks to research a person, character, concept, show, product, etc.
+- User wants a comprehensive analysis requiring multiple web sources
+- Standard search (Google) is blocked or returns no results
+- Research requires scraping actual content (transcripts, reviews, wikis)
+
+## Core Workflow
+
+### 1. Parallel Source Discovery (Batch Upfront)
+
+Fire multiple search/extraction attempts simultaneously rather than serially:
+
+```
+# Search DuckDuckGo HTML (bypasses bot detection)
+curl -s "https://html.duckduckgo.com/html/?q=QUERY" -A "Mozilla/5.0..."
+
+# Try known authoritative URLs directly
+curl -s "https://tvtropes.org/pmwiki/pmwiki.php/..." -A "Mozilla/5.0..."
+curl -s "https://EN_WIKI_URL" -A "Mozilla/5.0..."
+
+# Reddit JSON API (appends .json to any reddit URL)
+curl -s "https://www.reddit.com/r/SUBREDDIT/search.json?q=QUERY&sort=top&t=year"
+```
+
+**Critical**: Always include a realistic User-Agent. Many sites block requests without one.
+
+### 2. Fallback Search When Google is Blocked
+
+Google frequently blocks headless browsers and curl. **DuckDuckGo's HTML endpoint** is the primary fallback:
+
+```bash
+curl -s "https://html.duckduckgo.com/html/?q=YOUR+QUERY" \
+  -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+```
+
+Parse results with this regex pattern:
+```python
+results = re.findall(
+    r'class="result__title".*?href="(.*?)".*?>(.*?)</a>.*?'
+    r'class="result__snippet".*?>(.*?)</span>',
+    html, re.DOTALL
+)
+```
+
+### 3. Source Hierarchy for Different Topics
+
+| Topic Type | Best Sources | Notes |
+|---|---|---|
+| TV/Film characters | TV Tropes (Characters/ + WesternAnimation/) | Most detailed character tropes and dialogue |
+| TV/Film dialogue | SpringfieldSpringfield.co.uk | Episode transcripts; use `s01e01` format |
+| Literary/encyclopedic | SF Encyclopedia, Wikipedia API | Dense plot summaries, thematic analysis |
+| Fan community | Reddit JSON API, dedicated wikis | Opinions, theories, corrections |
+| Academic | arXiv, Google Scholar | Papers, citations |
+
+See `references/source-reliability.md` for detailed notes on which sources are trustworthy vs. AI-generated.
+
+### 4. Content Extraction Patterns
+
+**TV Tropes character pages** — richest source for character analysis:
+```bash
+curl -s "https://tvtropes.org/pmwiki/pmwiki.php/Characters/SHOW_NAME" \
+  -A "Mozilla/5.0" | python3 -c "
+import sys, re
+html = sys.stdin.read()
+text = re.sub(r'<[^>]+>', ' ', html)
+text = re.sub(r'\s+', ' ', text)
+idx = text.find('CHARACTER_NAME')
+if idx >= 0: print(text[idx:idx+8000])
+"
+```
+
+**Episode transcripts** (SpringfieldSpringfield):
+```bash
+curl -s "https://www.springfieldspringfield.co.uk/view_episode_scripts.php?\
+tv-show=SHOW_NAME&episode=s01e01" -A "Mozilla/5.0" | python3 -c "
+import sys, re
+html = sys.stdin.read()
+match = re.search(r'scrolling-script-container\">(.*?)</div>', html, re.DOTALL)
+if match:
+    text = re.sub(r'<br\s*/?>', '\n', match.group(1))
+    text = re.sub(r'<[^>]+>', '', text)
+    print(text[:5000])
+"
+```
+
+**Wikipedia** — use the REST API for clean text:
+```bash
+curl -s "https://en.wikipedia.org/wiki/TOPIC" -A "Mozilla/5.0" | python3 -c "
+import sys, re
+html = sys.stdin.read()
+text = re.sub(r'<[^>]+>', ' ', html)
+text = re.sub(r'\s+', ' ', text)
+idx = text.find('KEYWORD')
+if idx >= 0: print(text[max(0,idx-200):idx+3000])
+"
+```
+
+### 5. Source Reliability Assessment
+
+**Red flags for unreliable/fabricated content:**
+- Character AI / fandom AI sites (e.g., shapes.inc) generate plausible-sounding but fabricated quotes and character details
+- Watch for character names that don't appear in verified sources
+- Quotes that sound too perfectly crafted or too on-the-nose
+- Always cross-reference against at least 2 authoritative sources
+
+**Green flags for reliable content:**
+- TV Tropes character pages (community-verified, detailed tropes with episode citations)
+- Actual episode transcripts (SpringfieldSpringfield)
+- SF Encyclopedia (expert literary analysis)
+- Wikipedia (community-edited, sourced)
+
+### 6. Parallel Execution Strategy
+
+When researching a topic, fire off ALL independent requests in the same batch:
+
+```
+Batch 1 (all independent):
+  - DuckDuckGo search for topic overview
+  - Direct URL attempt for known wiki pages
+  - Reddit search for community discussion
+  - Wikipedia page fetch
+
+Batch 2 (depends on Batch 1 URLs):
+  - Visit specific pages found in Batch 1
+  - Fetch episode transcripts
+  - Get TV Tropes character page
+
+Batch 3 (depends on content):
+  - Extract and cross-reference quotes
+  - Fill gaps from Batch 2 findings
+  - Write final analysis
+```
+
+## Indian Educational Portal Research (Exam Marks vs Rank, Cutoffs, etc.)
+
+When researching Indian competitive exam data (NEET PG, NEET UG, JEE, etc.), search engines are almost always blocked. Go directly to known educational portals.
+
+### Working Portals (as of mid-2025)
+
+| Portal | URL Pattern | Notes |
+|--------|-------------|-------|
+| Careers360 | `medicine.careers360.com/articles/neet-pg-marks-vs-rank` | Subdomain works; main domain often 404s |
+| CollegeDekho | `www.collegedekho.com/articles/neet-pg-marks-vs-rank/` | Good multi-year tables |
+| Shiksha | Blocked by bot detection | Skip |
+| CollegeDunia | CloudFront 403 | Skip |
+| PrepLadder, BYJU's | 404 on marks-vs-rank articles | Unreliable URLs |
+
+### DOM Table Extraction Technique
+
+Educational portals render data in HTML `<table>` elements. The snapshot tool truncates large tables. **Use `browser_console` JavaScript instead**:
+
+```javascript
+// 1. Find all tables and extract content
+(() => {
+  const tables = document.querySelectorAll('table');
+  return Array.from(tables).map((t, i) => 
+    `TABLE ${i}: ${t.innerText.substring(0, 500)}`
+  ).join('\n\n');
+})()
+```
+
+```javascript
+// 2. Find which heading labels each table (critical for multi-year data)
+(() => {
+  const tables = document.querySelectorAll('table');
+  let out = [];
+  tables.forEach((t, i) => {
+    let node = t.parentElement;
+    let heading = 'none';
+    while (node) {
+      if (node.previousElementSibling) {
+        let prev = node.previousElementSibling;
+        while (prev) {
+          if (prev.tagName && prev.tagName.match(/^H[2-6]$/)) {
+            heading = prev.textContent.trim();
+            break;
+          }
+          const innerH = prev.querySelector('h2,h3,h4');
+          if (innerH) { heading = innerH.textContent.trim(); break; }
+          prev = prev.previousElementSibling;
+        }
+        if (heading !== 'none') break;
+      }
+      node = node.parentElement;
+    }
+    out.push(`Table ${i}: heading="${heading}" first_row="${t.rows[0]?.innerText.substring(0,100)}"`);
+  });
+  return out.join('\n');
+})()
+```
+
+```javascript
+// 3. Extract specific year's table by heading match
+(() => {
+  const hdgs = document.querySelectorAll('h2, h3, h4');
+  let tgt = null;
+  hdgs.forEach(h => { if (h.textContent.includes('NEET PG 2024')) tgt = h; });
+  if (!tgt) return 'no heading';
+  let el = tgt.nextElementSibling;
+  let attempts = 0;
+  while (el && el.tagName !== 'TABLE' && attempts < 20) {
+    el = el.nextElementSibling;
+    attempts++;
+  }
+  return el && el.tagName === 'TABLE' ? el.innerText.substring(0, 3000) : 'no table found';
+})()
+```
+
+### Pitfalls for Indian Exam Data
+
+- **URLs change yearly** — portals restructure URLs each exam cycle; 404s are common. Try the base article path first, then search for alternate slugs
+- **Data is often sample-based** — marks-vs-rank tables on these sites are frequently constructed from individual candidate reports, not official NBE/MCC data. Expect non-monotonic values and treat ranks as approximate (±2-3K)
+- **Multiple tables per page** — pages often have current year + previous year data; always verify which heading labels which table before citing data
+- **Subdomain routing** — careers360 sometimes serves content only on subdomains (medicine.careers360.com) not the main domain
+
+## YouTube Video Search (curl + JSON extraction)
+
+YouTube's search results page embeds structured data as `ytInitialData` JSON. This is the most reliable way to search YouTube from the terminal:
+
+```bash
+curl -s "https://www.youtube.com/results?search_query=YOUR+QUERY" \
+  -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36" 2>/dev/null | python3 -c "
+import sys, re, json
+html = sys.stdin.read()
+match = re.search(r'var ytInitialData = ({.*?});', html)
+if match:
+    data = json.loads(match.group(1))
+    contents = data.get('contents', {}).get('twoColumnSearchResultsRenderer', {}).get('primaryContents', {}).get('sectionListRenderer', {}).get('contents', [])
+    count = 0
+    for section in contents:
+        items = section.get('itemSectionRenderer', {}).get('contents', [])
+        for item in items:
+            vid = item.get('videoRenderer')
+            if vid and count < 10:
+                vid_id = vid.get('videoId', '')
+                title = vid.get('title', {}).get('runs', [{}])[0].get('text', '')
+                channel = vid.get('ownerText', {}).get('runs', [{}])[0].get('text', '')
+                length = vid.get('lengthText', {}).get('simpleText', '')
+                print(f'{count+1}. [{length}] {title}')
+                print(f'   Channel: {channel}')
+                print(f'   URL: https://www.youtube.com/watch?v={vid_id}')
+                print()
+                count += 1
+" 2>/dev/null
+```
+
+This reliably returns video IDs, titles, channels, and durations. Use it when the user asks for a video example of a tool, technique, or concept.
+
+## Pitfalls
+
+- **NEVER retry an identical failed curl call** — if a curl request returns empty or errors, the result is the result. Re-running the exact same command will produce the exact same empty output. After 2 failed identical calls, STOP and try a different approach (browser_navigate, different search terms, different source). Getting stuck in identical-curl loops has wasted 20+ tool calls in past sessions.
+- **Google will block you** — don't waste time retrying; go straight to DuckDuckGo HTML
+- **Cloudflare-protected fandom wikis** — most fandom.com wikis are behind Cloudflare challenges; find the same info on TV Tropes or Wikipedia instead
+- **AI-generated content on character sites** — sites like shapes.inc/fandom generate realistic but fabricated quotes; always verify against transcripts or TV Tropes
+- **Reddit JSON API may return empty** — the old.reddit.com JSON endpoint sometimes fails; use DuckDuckGo to find Reddit threads instead
+- **Later episodes may lack transcripts** — SpringfieldSpringfield often only has first few episodes; plan around this
+- **Curl User-Agent matters** — many sites require a realistic browser User-Agent or return empty/blocked pages
+
+## Academic & Patent Database Research
+
+When researching novel technical concepts, prior art, or scientific literature — standard search engines are often blocked. Go directly to academic databases and patent servers.
+
+### Working Databases (as of mid-2026)
+
+| Database | URL | Access | Notes |
+|----------|-----|--------|-------|
+| **PubMed** | pubmed.ncbi.nlm.nih.gov | ✅ Browser works | Biomedical literature. Best for medical/bio engineering. Zero results = genuinely novel concept |
+| **arXiv** | arxiv.org/search | ✅ Browser works | Preprints (CS, physics, engineering). Good for early-stage tech concepts |
+| **Google Patents** | patents.google.com | ✅ Browser works | ~38M patents. Best for prior art searches. Use quotes for exact phrases |
+| **Semantic Scholar** | semanticscholar.org | ✅ Browser works | AI-powered academic search. Good cross-disciplinary coverage |
+| **IEEE Xplore** | ieeexplore.ieee.org | ⚠️ Abstracts free, full-text paywalled | Engineering/robotics specifically |
+
+### Blocked / Unreliable
+
+| Database | Status | Workaround |
+|----------|--------|------------|
+| Google Scholar | ❌ CAPTCHA/bot detection | Use PubMed or Semantic Scholar instead |
+| ResearchGate | ❌ Login wall | Use Google Patents for prior art instead |
+| SciHub | ⚠️ Unreliable availability | Not recommended |
+
+### Search Strategy for Novel Concepts
+
+When checking if a concept already exists:
+
+1. **Start with Google Patents** — most comprehensive prior art database. Search with exact technical phrases in quotes.
+2. **PubMed** — zero results for highly specific queries means the concept hasn't been published in biomedical literature
+3. **arXiv** — check for preprints (often ahead of published papers)
+4. **Semantic Scholar** — cross-disciplinary catch-all
+
+**Key insight**: If PubMed, arXiv, AND Google Patents all return zero results for a specific combination of technical terms, the concept is likely novel or at minimum unpublished. This is strong evidence — but not proof — of novelty.
+
+### Pitfalls for Academic Research
+- **Search engines geo-block and CAPTCHA** — Google Scholar, Brave, DuckDuckGo all blocked headless browsers in testing. Go straight to the databases.
+- **Broad queries return noise** — use the most specific technical terms possible. "piezo motor fabric muscle" returns irrelevant results; "ultrasonic piezo dual strand agonist antagonist" returns zero (meaningful)
+- **Zero results IS data** — on PubMed/arXiv, zero results for a specific query is informative. It means the exact concept hasn't been indexed. Don't keep retrying with slightly different terms hoping for a hit.
+- **Patent searches use different vocabulary** — patents often describe things differently than academic papers. Try multiple phrasings: "piezoelectric actuator" vs "piezo motor" vs "ceramic transducer"
+
+## Technology Comparison Research
+
+When researching SaaS APIs, open-source models, or competing products:
+
+### LLMs.txt Provider Documentation (Fastest Path)
+
+Many AI providers now publish structured docs at `llms.txt` — a plain-text file designed for LLM consumption. Check this FIRST before scraping HTML:
+
+```bash
+# Try the standard location
+curl -s "https://provider.com/llms.txt" | head -100
+
+# Or linked from the page header:
+# <link rel="llms" type="text/plain" href="./llms.txt">
+```
+
+`llms.txt` typically contains: model list with IDs, capabilities, context windows, pricing links, API format docs, and integration guides. It's the single cleanest way to get a provider's full model catalog without parsing JS-rendered pages.
+
+**Known providers with `llms.txt`:** Xiaomi MiMo (`platform.xiaomimimo.com/llms.txt`), and growing. Always try it — if it exists, it saves 5+ tool calls.
+
+**Companion files** to check alongside `llms.txt`:
+- `/static/docs/quick-start/model.md` — model IDs, context windows, rate limits
+- `/static/docs/price/pay-as-you-go.md` — per-token pricing tables
+
+### Provider Pricing Extraction
+
+Most pricing pages are JS-rendered. Three approaches in order of preference:
+
+**1. Browser navigation** (most reliable for JS-rendered pricing):
+```
+browser_navigate to provider/pricing → browser_snapshot full=true → extract tables
+```
+
+**2. curl + python HTML extraction** (for static/SSR pages):
+```bash
+curl -sL "https://provider.com/pricing" -A "Mozilla/5.0" | python3 -c "
+import sys, re
+html = sys.stdin.read()
+text = re.sub('<[^>]+>', '\n', html)
+text = re.sub(r'\n\s*\n', '\n', text)
+lines = [l.strip() for l in text.split('\n') if l.strip()]
+for i, line in enumerate(lines):
+    if any(kw in line.lower() for kw in ['per minute', '\$', 'per hour', 'per month']):
+        for j in range(max(0,i-2), min(len(lines), i+3)):
+            print(f'{j}: {lines[j]}')
+        print('---')
+"
+```
+
+**3. Check for structured data**: Some providers expose pricing as JSON or in `<table>` elements — try targeted CSS selectors first.
+
+### Open-Source Model Evaluation
+
+Check GitHub repos and HuggingFace for model specs:
+
+```bash
+# Raw README from GitHub (benchmarks, VRAM, usage)
+curl -sL "https://raw.githubusercontent.com/OWNER/REPO/main/README.md" | head -200
+
+# HuggingFace model card (architecture, languages, size)
+curl -sL "https://huggingface.co/ORG/MODEL/raw/main/README.md" | head -100
+
+# HuggingFace API (model metadata)
+curl -sL "https://huggingface.co/api/models/ORG/MODEL" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+print('Model:', data.get('id'))
+for s in data.get('siblings', []):
+    sz = s.get('size', 0)
+    if sz: print(f'  {s[\"rfilename\"]}: {sz/1e9:.2f} GB')
+"
+```
+
+### Comparison Report Format
+
+For technology comparison output, use this structure:
+1. **Ranked list** with clear winner justification
+2. **Pricing comparison table** (normalize to $/hr for audio, $/1M tokens for LLMs, etc.)
+3. **Feature matrix** (accuracy, latency, languages, VRAM requirements)
+4. **Hardware-specific recommendations** when user provides specs
+5. **Source attribution** with URLs and verification dates
+
+### Pitfalls for Tech Research
+
+- **Search engines geolocalize** — Bing/Google may return irrelevant local results; go straight to provider websites
+- **Bot detection on pricing pages** — OpenAI, Cloudflare-heavy sites often block; fall back to curl with User-Agent or cached/third-party sources
+- **Pricing pages are often JS-rendered** — raw curl often returns empty/JS shells; use browser tools or check for SSR/API endpoints
+- **Model VRAM claims vary by source** — always check the actual model card/HuggingFace page rather than blog posts; VRAM depends on precision (FP16/INT8), batch size, and CUDA overhead
+- **"Best" is context-dependent** — always ask or infer: accuracy vs. speed vs. cost vs. VRAM vs. language coverage tradeoffs change the ranking
+
+## Educational / Competitive Exam Data Research
+
+When researching marks-vs-rank, cutoff, or score data for competitive exams (NEET, JEE, GATE, UPSC, etc.):
+
+### Source Hierarchy
+
+| Source Type | Reliability | Notes |
+|---|---|---|
+| Official body (NBE, NTA, MCC, UPSC) | Highest | Publish individual scorecards/ranks, but **rarely publish aggregate marks-vs-rank tables** |
+| Top educational portals (CollegeDekho, Embibe, Shiksha) | Good | Construct marks-vs-rank tables from reported data; include year-on-year trend analysis |
+| Coaching institutes / YouTube | Medium | Often early with estimates, but may be promotional |
+| Reddit / Quora / forums | Low-Medium | Anecdotal, but useful for validation of trends |
+
+**Key insight**: Official bodies almost never publish aggregated marks-vs-rank tables. Educational portals build these from reported scorecards, coaching data, and trend analysis. Treat portal tables as well-informed estimates, not official figures.
+
+### Extraction Technique for HTML Tables
+
+Indian educational portals often serve table data server-side (no JS needed). Extract with:
+
+```bash
+# Method 1: Strip all HTML, grep for relevant terms
+curl -sL "URL" -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
+  | sed 's/<[^>]*>/\n/g' | grep -v '^\s*$' | grep -i -E "(rank|marks|cutoff)"
+
+# Method 2: Extract table rows directly (most reliable)
+curl -sL "URL" -A "Mozilla/5.0" \
+  | grep -oP '<tr[^>]*>.*?</tr>' | grep -i -E "(4[0-4][0-9]|rank|marks)"
+```
+
+### Rank Inflation Pitfall
+
+When cross-referencing data across exam years, **rank inflation** can be extreme. For example, 550 marks in NEET PG might correspond to rank ~2,000 in 2021 but rank ~21,500 in 2025. Always:
+1. Use the most recent year's data as baseline
+2. Check if the portal explicitly mentions inflation trends
+3. When tables stop at a certain marks range, extrapolate downward with a caveat — rank density increases sharply at lower marks
+
+### Portal Access Patterns
+
+Indian educational portals vary in bot tolerance:
+- **CollegeDekho, Embibe**: Generally curl-accessible; tables are SSR
+- **Shiksha, GetMyUni, Prepp**: Often block curl/UA; try browser tools as fallback
+- **JagranJosh**: Frequently returns 404 or JS shells; try browser
+- **NBE/official sites**: Usually JS-heavy; browser tools required
+
+### Output Format for Exam Data
+
+Include in results:
+1. **Exact rank range** for the requested marks (or best estimate with caveat)
+2. **Data source and year** — never present extrapolated data as confirmed
+3. **Year-on-year inflation context** if available
+4. **Category-specific cutoffs** (General, OBC, SC/ST, EWS) if relevant
+5. **Branch/specialization-specific cutoffs** if relevant (for medical/engineering)
+
+## Output Format
+
+For character/concept research, produce a structured markdown document with:
+1. Core traits/personality (verified against primary sources)
+2. Speaking style / dialogue patterns (with actual quoted examples)
+3. Worldview / philosophy
+4. Interactions with other characters
+5. Background / history
+6. Verified quotes (attributed to source)
+7. Writing guide (if applicable — how to write in their voice)
+8. Sources list (what was used, what was verified where)
+
+Mark any information that couldn't be verified with a note.

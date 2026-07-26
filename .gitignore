@@ -1,0 +1,24 @@
+# Secrets and tokens
+.env
+auth.json
+tokens.json
+
+# State and database
+state.db
+state.db-journal
+state.db-wal
+
+# Sessions and logs
+sessions/
+logs/
+cache/
+audio_cache/
+
+# Generated files
+__pycache__/
+*.pyc
+*.pyo
+
+# Large binary/state files
+*.db
+*.sqlite
