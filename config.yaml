@@ -169,3 +169,4 @@ updates:
   backup_keep: 5
   non_interactive_local_changes: stash
   pre_update_backup: false
+context_file_max_chars: 50000
