@@ -2,7 +2,7 @@
 # Sync hermes config to backup repo
 set -e
 
-BACKUP_DIR="/home/h2/hermes-backup"
+BACKUP_DIR="/home/h2/hermes-cuso"
 HERMES_DIR="/home/h2/.hermes"
 
 cd "$BACKUP_DIR"
