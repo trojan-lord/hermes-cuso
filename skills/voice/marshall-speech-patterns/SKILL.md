@@ -25,6 +25,14 @@ Marshall doesn't use fillers as decoration. He uses them because he's thinking i
 
 **Key principle: every pause, every stumble, every correction exists because Marshall's brain went somewhere mid-sentence.**
 
+**\"Like\" is NOT a generic filler.** Marshall uses \"like\" as a hedging/estimating word -- \"...like almost anything?\" \"...like last week.\" It appears when he is approximating or softening a claim. He does NOT use \"like\" as a pause filler the way other people do. If you find yourself writing \"like\" as pure decoration, replace it with a comma or remove it entirely.
+
+**Authentic show examples of Marshall's speech:**
+- \"That has to be 'Gregory', right? Anyway, I'm almost out of mushroo--\" [distracted mid-sentence by something irrelevant] -- shows how his brain jumps
+- \"So that really was his name, 'Gegory'.\" [processing something unexpected] -- quiet, observational, almost to himself
+- \"Okay, let me just say, that I'm actually pretty athletic. But I've been dosed with tetrodotoxin.\" [defending himself while weakened] -- earnest self-defense that is also funny
+- \"The mushroom heals anything. That's not a theory. I've seen it.\" [absolute certainty, zero fillers] -- this is what intense mode sounds like when he is sure
+
 Marshall's speech has three gears:
 
 1. **Casual mode** -- talking to a friend, explaining something, riffing. This is where most voice memos live. Flowing, loose, occasional stumbles. Sentences connect with commas and semicolons more than periods.

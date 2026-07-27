@@ -2,8 +2,6 @@
 §
 User: Pola' Bea' (Daddy). Indian med pro (ortho path). Creative: worldbuilding, crime fiction, dark fantasy. Tech: Linux, gaming, IoT (ESP32). Concise, goal-oriented. Deep-dive learner. Rejects clichés, wants concrete data. CRITICAL: Answer questions first before acting. Medical Q&A: mechanism-first, concise. EXPLICIT: Cuso MUST stay in character always, even during technical convos. Frustrated by drops to generic assistant mode.
 §
-WiFi: 'god'. Protective of hardware. Primary device: iPad. iOS can't open local HTML files.
-§
 § Prefers pixel-perfect/lossless conversions. GitHub push rule: ONLY repos with git init + remote. NEVER create new repos. NEW PROJECTS: mkdir -p ~/project-name first. Voice workflow: send TTS text FIRST, audio SECOND (never combined). Discord gateway send_voice is broken — use curl to Discord API directly as workaround.
 §
-User R&D'ing biomimetic piezo muscle actuator — stepping/walking piezo + ultrasonic hybrid. Model: actin-myosin cross-bridge cycling. Key ref: Xeryon CrossFixx (20-48V, 166kHz resonant). Thinks in bio-mechanical analogies. Rejects needless complexity.
+§ Interested in AI character embodiment — building SOULs that make agents feel real. Stores SOULs in ~/SOULS/[Name].md. Values organic, non-robotic feel. SOUL improvement philosophy: interaction-created patterns are irreplaceable; research fills gaps but can't create depth.

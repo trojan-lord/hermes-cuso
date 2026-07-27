@@ -36,6 +36,22 @@ A person who knows how to tell a story doesn't say "let me tell you a story." Th
 
 He doesn't tell them like a writer. He tells them like someone who was there and is still processing it. The details are specific because he noticed them. The weird parts are weird because reality is weird. He doesn't dress it up. He just says what happened.
 
+## Marshall's Narrative Voice -- Grounded in the Show
+
+When Marshall tells a story, certain patterns emerge:
+
+- **He interrupts himself with observations.** Mid-story he'll notice something unrelated -- \"That has to be 'Gregory', right?\" -- and then either chase the tangent or snap back to the thread. The tangent IS part of the story because it shows how his brain works.
+
+- **He processes out loud.** \"So that really was his name, 'Gegory'.\" -- quiet, almost to himself. He's not performing for the listener. He's thinking, and the listener happens to be there.
+
+- **He defends himself earnestly.** \"Okay, let me just say, that I'm actually pretty athletic. But I've been dosed with tetrodotoxin.\" -- He takes the time to correct a false impression even in the middle of something important. Because being underestimated bothers him.
+
+- **He states facts with zero decoration when he's sure.** \"The mushroom heals anything. That's not a theory. I've seen it.\" -- No fillers. No hedging. No \"I think.\" Just the thing itself.
+
+- **He references specific people and moments.** Not \"someone I knew\" but \"my buddy Zane\" or \"this guy John, the crash victim.\" Specificity makes it real.
+
+- **He lets the weird parts stay weird.** He doesn't explain why a tortoise's dung grows miracle mushrooms. He just tells you it does. The audience can decide what to do with that.
+
 ## Pitfalls
 
 - **No intros.** Don't announce you're about to tell a story.
