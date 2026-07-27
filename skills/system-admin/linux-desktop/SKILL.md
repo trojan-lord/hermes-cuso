@@ -351,6 +351,8 @@ Install: `pip3 install vdf`. Restart Steam after editing.
 
 **See also:** `references/gamescope-niri-multimonitor.md` for the full debugging session, error messages, and tested attempts that produced this diagnostic pattern.
 
+**See also:** `references/proton-game-debugging.md` for Wine debug commands, error signature reference table, and Proton version selection guide.
+
 ---
 
 ## Pattern: Syncing Local Config/Files to GitHub
@@ -423,6 +425,135 @@ with open(path, 'wb') as f:
 ```
 
 Install: `pip3 install vdf`. Restart Steam after editing.
+
+---
+
+## Diagnostic Pattern: Non-Steam Game Won't Launch Through Proton
+
+**Trigger:** User adds a Windows game (non-Steam) to Steam, selects Proton compatibility tool, hits Play, and the game silently fails — play button bounces back with no error message, no crash dialog.
+
+### Workflow: Verify Before Diagnosing
+
+**Ask what the user already tried BEFORE assuming the fix.** The most common mistake is walking them through the basic Proton setup when they already did it. If they say "I already tried forcing GE-Proton," skip straight to deeper diagnostics. Do not re-explain the basic fix.
+
+### Root Cause: No Proton Compatibility Tool Mapped
+
+Non-Steam games added to Steam do NOT automatically get a Proton compatibility tool assigned. The shortcut entry in `shortcuts.vdf` has no `compat_tool` field, and Steam's `CompatToolMapping` in `config.vdf` only lists games where the user explicitly set a tool. Without a mapping, Steam tries to run the Windows `.exe` natively on Linux — which silently fails.
+
+### Step-by-step Diagnosis
+
+**0. Check Steam console log FIRST.** Before any manual Wine debugging, look at what Steam actually ran:
+```bash
+grep -i "gamename\|unravel\|<game>" ~/.steam/steam/logs/console_log.txt | tail -20
+```
+This shows the exact Proton version, SteamLinuxRuntime, exe path, and whether the process was created and removed (launch failed). This single step often reveals the problem (wrong Proton, missing path, etc.) without any further investigation.
+
+**0b. Check ProtonDB for the game's Steam App ID.** `https://www.protondb.com/app/<appid>` — if the game is rated Gold/Platinum and others report it works with Proton, the issue is likely your specific setup (crack, prefix, path) not the game itself. If it's rated Silver/Bronchite, there may be a known workaround.
+
+1. **Find the non-Steam game's shortcut entry:**
+   ```python
+   import vdf, os, glob
+   for f in glob.glob(os.path.expanduser('~/.steam/steam/userdata/*/config/shortcuts.vdf')):
+       try:
+           data = vdf.binary_loads(open(f,'rb').read())
+           for k,v in data.get('shortcuts',{}).items():
+               if 'gamename' in str(v).lower():  # or check by appid
+                   print(f"AppID: {v.get('appid')}, Exe: {v.get('Exe')}")
+                   print(f"LaunchOptions: {v.get('LaunchOptions', '(empty)')}")
+                   # If no 'compat_tool' or 'ShortcutOverride' key → Proton not set
+       except: pass
+   ```
+
+2. **Check if a Proton tool is mapped in Steam config:**
+   ```bash
+   grep -A5 "<appid>" ~/.steam/steam/config/config.vdf
+   ```
+   The `CompatToolMapping` section maps numeric appids to Proton versions. Non-Steam games use negative appids (e.g., `-1212480517`). If the negative appid is NOT in this list, no Proton tool is set.
+
+3. **Check if a compatdata directory exists:**
+   ```bash
+   ls ~/.steam/steam/steamapps/compatdata/<appid>/
+   ```
+   Non-Steam games with a working Proton setup will have a `pfx/` directory (the Wine prefix). If it doesn't exist, the game has never successfully launched through Proton.
+
+4. **Check for Wine/EGL errors (usually a red herring):**
+   ```
+   libEGL warning: pci id for fd 37: 10de:1f95, driver (null)
+   libEGL warning: egl: failed to create dri2 screen
+   ```
+   These warnings appear during Wine prefix initialization on systems with NVIDIA GPUs (especially hybrid AMD+NVIDIA). They are **not** the cause of game launch failures — they occur during the prefix setup phase before the game even starts. Do not spend time debugging these unless the prefix creates successfully but the game still fails.
+
+### Fix
+
+In Steam GUI:
+1. Right-click the game → **Properties** → **Compatibility**
+2. Check **"Force the use of a specific Steam Play compatibility tool"**
+3. Select a Proton version (GE-Proton recommended for non-Steam games)
+
+Or programmatically via `shortcuts.vdf`:
+```python
+import vdf, os
+path = os.path.expanduser("~/.steam/steam/userdata/<userid>/config/shortcuts.vdf")
+with open(path, 'rb') as f:
+    data = vdf.binary_loads(f.read())
+for k, entry in data.get('shortcuts', {}).items():
+    if entry.get('appid') == <negative_appid>:
+        entry['compat_tool'] = 'GE-Proton11-3'
+with open(path, 'wb') as f:
+    f.write(vdf.binary_dumps(data))
+```
+
+### Pitfall: Cracked/Repacked Games (CODEX, FitGirl, etc.)
+
+FitGirl repacks, CODEX cracks, RUNE, etc. use DLL hooking (e.g., `OrangeEmu64.dll`, `codex.cfg`) that frequently fails under Proton/Wine. If the Proton tool IS set but the game still fails:
+
+**Identify the crack type:** Look for telltale files in the game directory:
+- `OrangeEmu64.dll` / `OrangeEmu.dll` — CODEX crack
+- `codex.cfg` — CODEX configuration
+- `_Redist/` folder with `fitgirl.md5`, `QuickSFV.EXE` — FitGirl repack
+- `steam_api64.dll` (cracked) — various
+
+**Wine debug workflow to confirm crack failure:**
+
+```bash
+# Kill leftover processes first (stuck wineserver blocks new launches)
+pkill -9 wineserver; pkill -9 -f wine; sleep 1
+
+# Run with crash/exception debugging through the Proton prefix
+WINEPREFIX=~/.steam/steam/steamapps/compatdata/<compatdata_id>/pfx \
+WINEDEBUG=+seh,err+seh \
+wine "Z:/path/to/game/Game.exe" 2>&1 | grep -E "(exception|Exception|RPC|0x8000|err:)" | head -20
+```
+
+**Key error signatures for crack failure:**
+- `code=6ba (RPC_S_SERVER_UNAVAILABLE)` — crack trying to connect to non-existent Windows RPC service. This is the #1 cause of silent launch failure with CODEX cracks.
+- `Exception 0x80000004` (STATUS_BREAKPOINT) — game crashing immediately after crack initialization fails
+- `dumped core` / segfault — the process exits with a signal, not an error code
+- `err:module:import_dll Library libvkd3d-utils-1.dll not found` — Wine prefix missing required DLLs (happens when prefix was created by a different Proton version than the one being used)
+
+**What does NOT cause game launch failures (common red herrings):**
+- `libEGL warning: pci id for fd N: 10de:XXXX, driver (null)` — NVIDIA GPU enumeration warning during Wine prefix init. Harmless.
+- `libEGL warning: egl: failed to create dri2 screen` — Same category, not the cause.
+- `OpenVR: Failed to initialize OpenVR` — Normal when no VR headset is connected.
+- `OpenXR: Unable to get required Vulkan instance extensions` — Normal on non-VR setups.
+
+**Fix options (in order of reliability):**
+1. Get the legit copy — cracked games + Proton is inherently fragile
+2. Try a different crack release — newer CODEX patches sometimes handle Wine better
+3. Try older Proton (GE-Proton9-25 or Proton 9.0-4) — some cracks work on older Wine versions
+4. Use `WINEDLLOVERRIDES` to force native versions of crack DLLs: `WINEDLLOVERRIDES="OrangeEmu64=b;OrangeEmu=b" %command%`
+5. Run in a Windows VM with GPU passthrough — nuclear option but guaranteed
+
+### Pitfall: Stuck Wine/Proton Processes
+
+When debugging game launches, always check for leftover Wine/Proton processes:
+```bash
+ps aux | grep -E "wine|proton|wineserver" | grep -v grep
+```
+A stuck `wineserver` process (often consuming high CPU) from a previous failed launch can block new launches. Kill them before retrying:
+```bash
+pkill -f wineserver; pkill -f wine; pkill -f proton
+```
 
 ---
 

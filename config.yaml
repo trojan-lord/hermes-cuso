@@ -163,10 +163,11 @@ tts:
   providers:
     marshall:
       command: /home/h2/marshall-voice/tts-provider.sh {input_path} {output_path}
+      output_format: ogg
+      voice_compatible: true
       max_text_length: 2000
       type: command
 updates:
   backup_keep: 5
   non_interactive_local_changes: stash
   pre_update_backup: false
-context_file_max_chars: 50000

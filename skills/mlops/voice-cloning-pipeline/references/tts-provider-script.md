@@ -32,6 +32,8 @@ tts:
     marshall:
       type: command
       command: "/home/h2/marshall-voice/tts-provider.sh {input_path} {output_path}"
+      output_format: ogg       # Required: Hermes passes .ogg path to provider
+      voice_compatible: true   # Required: emits [[audio_as_voice]] for voice delivery
       max_text_length: 2000
 ```
 
@@ -72,6 +74,8 @@ Delete everything else.
 - **Wrong voice:** Check that config key is lowercase "marshall" not "Marshall"
 - **Bash heredoc crash:** Use `echo "$VAR" |` pipe, NOT `<<< "$VAR"` heredoc. Bash escapes apostrophes in heredocs, corrupting text and crashing TTS.
 - **Discord MEDIA: tag silently dropped:** Respond with ONLY the `MEDIA:<path>` tag — no accompanying text.
+- **Discord voice message not delivered (MP3 format):** Discord's send_voice wraps audio as `voice-message.ogg` with content_type `audio/ogg`. If actual data is MP3, Discord rejects it silently. Fix: output OGG/Opus from provider (`codec:a libopus`), set `output_format: ogg` and `voice_compatible: true` in config. Gateway logs `response_delivery_dropped` when this happens.
+- **TTS provider exits code 1 (Invalid audio stream):** Happens when Hermes passes `.mp3` output path but provider uses libopus codec. FFmpeg can't write Opus into MP3 container. Fix: set `output_format: ogg` in config so Hermes passes `.ogg` path.
 - **ICL transcript mismatch:** If the .txt file doesn't match what the audio actually says (even punctuation differences like "and..." vs "and"), the model learns from misaligned data. Run Whisper on the exact clip and use that output verbatim. Punctuation in the transcript matters because ICL aligns text tokens to audio frames.
 - **VRAM contention:** Other GPU applications (Dota 2, browsers with GPU accel, etc.) can eat VRAM needed for TTS. Check `nvidia-smi` before debugging TTS failures.
 - **Rollback when broken:** If changes break TTS, `git checkout <last-working-commit> -- tts-provider.sh` to revert. Don't try to fix forward — revert first.

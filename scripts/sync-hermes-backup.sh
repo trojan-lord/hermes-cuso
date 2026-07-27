@@ -7,7 +7,7 @@ HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
 
 # Clone fresh each time (avoids stale state)
 rm -rf "$REPO_DIR"
-gh repo clone ryan0ezekiel/.hermes-Cuso "$REPO_DIR" 2>/dev/null || exit 1
+gh repo clone trojan-lord/hermes-cuso "$REPO_DIR" 2>/dev/null || exit 1
 
 # Copy config files
 cp "$HERMES_HOME/SOUL.md" "$REPO_DIR/SOUL.md" 2>/dev/null

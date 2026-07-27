@@ -823,7 +823,9 @@ tts:
     marshall:  # dict key MUST match provider name (lowercase)
       type: command
       command: "/path/to/tts-provider.sh {input_path} {output_path}"
-      max_text_length: 400  # 0.6B can handle ~400 chars; 1.7B needs ~200
+      output_format: ogg       # Required: Hermes passes .ogg path to provider
+      voice_compatible: true   # Required: emits [[audio_as_voice]] for Discord/Telegram voice delivery
+      max_text_length: 2000    # 0.6B can handle ~400; 1.7B needs ~200 without auto-splitting
 ```
 
 ### Provider Wrapper Script
@@ -846,12 +848,12 @@ echo "$TEXT" | ~/qwentts.cpp/build/qwen-tts \
     --ref-spk ~/marshall-voice/selected/clip_07_trimmed_precise.spk \
     --ref-text ~/marshall-voice/selected/clip_07_trimmed_precise.txt \
     --max-new 500 \
-    -o "${OUTPUT_PATH%.mp3}.wav" \
+    -o "${OUTPUT_PATH%.ogg}.wav" \
     2>/dev/null
 
-# Convert to mp3 for Discord
-ffmpeg -y -i "${OUTPUT_PATH%.mp3}.wav" -codec:a libmp3lame -b:a 128k "$OUTPUT_PATH" 2>/dev/null
-rm -f "${OUTPUT_PATH%.mp3}.wav"
+# Convert to OGG/Opus for Discord + Telegram voice delivery
+ffmpeg -y -i "${OUTPUT_PATH%.ogg}.wav" -af atempo=0.96 -codec:a libopus -b:a 64k "$OUTPUT_PATH" 2>/dev/null
+rm -f "${OUTPUT_PATH%.ogg}.wav"
 ```
 
 **Pre-encode reference (one-time setup for ICL mode):**
@@ -1023,7 +1025,7 @@ When the cloned voice is active in a thread, **prefer voice memos for all respon
 
 This makes the conversation feel like talking to the character, not just reading their words.
 
-**CRITICAL: Discord MEDIA: tag delivery.** When the agent responds with BOTH text content AND a `MEDIA:<path>` tag in the same message, the Discord adapter sends the text but **silently drops the audio file**. The agent must respond with ONLY the `MEDIA:<path>` tag — no accompanying text, no explanation, no sign-off — for the audio to be delivered as a voice memo. If you need to convey non-audio information (code, tables, links), send it as a separate text message before or after the voice memo.
+- **Discord MEDIA: tag silently dropped:** When the agent responds with BOTH text AND a `MEDIA:<path>` tag in the same message, the Discord adapter sends the text but **silently drops the audio file**. The agent must respond with ONLY the `MEDIA:<path>` tag — no accompanying text, no explanation, no sign-off — for the audio to be delivered as a voice memo. If you need to convey non-audio information (code, tables, links), send it as a separate text message before or after the voice memo.
 
 ```
 # WRONG — text + MEDIA tag in same message → audio dropped
@@ -1032,6 +1034,8 @@ Here's the system report. MEDIA:/path/to/audio.mp3
 # CORRECT — MEDIA tag only → audio delivered as voice memo
 MEDIA:/path/to/audio.mp3
 ```
+
+- **Voice prompt quality — avoid mechanical/template feel:** User reported that voice memos sound like "picking words from a pre-approved set." The marshall-speech-patterns skill's fillers and sentence starters, when applied too rigidly, produce prompts that feel scripted rather than natural. Fix: write prompts that sound like someone thinking in real time, not someone filling a template. Vary the fillers. Let some sentences start without a filler. Use false starts and mid-sentence corrections more than standardized openers. The goal is organic speech, not a formula with slots.
 
 ### Voice Memo Writing Style (MANDATORY — User Preference)
 
@@ -1058,7 +1062,30 @@ Hermes supports these placeholders in the command template:
 - `{speed}` — speed setting
 
 **Pitfall:** The command provider writes text to a temp file, not stdin. Read from `{input_path}`, not stdin.
-**Pitfall:** Discord requires mp3 output. Telegram needs opus (.ogg). The wrapper should handle format conversion.
+**Pitfall: Discord voice messages REQUIRE OGG/Opus format.** Discord's `send_voice` method sends audio as a native voice message (flags=8192) with `filename: "voice-message.ogg"` and `content_type: "audio/ogg"`. If the actual data is MP3, Discord rejects the format mismatch silently — the file never arrives, and the gateway logs `response_delivery_dropped`. The fallback `channel.send(file=file)` also fails because the Discord API expects OGG for voice-flagged messages.
+
+**Fix:** Output OGG/Opus from the provider script:
+```bash
+# In tts-provider.sh — final conversion step
+ffmpeg -y -i "$FULL_WAV" -af atempo=0.96 -codec:a libopus -b:a 64k "$OUTPUT_PATH"
+```
+
+**Required config in ~/.hermes/config.yaml:**
+```yaml
+tts:
+  providers:
+    marshall:
+      command: /home/h2/marshall-voice/tts-provider.sh {input_path} {output_path}
+      output_format: ogg       # Hermes passes .ogg path to provider
+      voice_compatible: true   # Routes audio to send_voice (voice message flag)
+      max_text_length: 2000
+      type: command
+```
+
+Without `output_format: ogg`, Hermes passes a `.mp3` path and the Opus codec fails (`Invalid audio stream. Exactly one MP3 audio stream is required`).
+Without `voice_compatible: true`, the `[[audio_as_voice]]` directive is not emitted, and the file is sent as a regular attachment instead of a voice message.
+
+**Telegram** needs opus (.ogg) too — same format works for both platforms.
 
 **Pitfall: Long text OOM even with chunked decoding.** On 4GB VRAM, the 1.7B Q8_0 model can generate 300+ frames before the codec decoder OOMs during `pipeline_codec_decode`. The `--codec-chunk-dur` parameter splits decoding into chunks but the codec weights + intermediates still need ~1.5GB VRAM.
 
