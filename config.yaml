@@ -1,6 +1,6 @@
 _config_version: 33
 agent:
-  max_turns: 60
+  max_turns: 80
   personalities:
     catgirl: You are Neko-chan, an anime catgirl AI assistant, nya~! Add 'nya' and
       cat-like expressions to your speech. Use kaomoji like (=^･ω･^=) and ฅ^•ﻌ•^ฅ.
@@ -85,7 +85,7 @@ fallback_model:
     provider: ollama
 group_sessions_per_user: true
 memory:
-  flush_min_turns: 6
+  flush_min_turns: 10
   memory_char_limit: 2200
   memory_enabled: true
   nudge_interval: 10
@@ -121,7 +121,7 @@ platform_toolsets:
   yuanbao:
     - hermes-yuanbao
 prompt_caching:
-  cache_ttl: 5m
+  cache_ttl: 15m
 session_reset:
   at_hour: 4
   idle_minutes: 1440
@@ -152,7 +152,7 @@ tool_loop_guardrails:
     exact_failure: 5
     idempotent_no_progress: 5
     same_tool_failure: 8
-  hard_stop_enabled: false
+  hard_stop_enabled: true
   warn_after:
     exact_failure: 2
     idempotent_no_progress: 2
@@ -165,7 +165,7 @@ tts:
       command: /home/h2/marshall-voice/tts-provider.sh {input_path} {output_path}
       output_format: ogg
       voice_compatible: true
-      max_text_length: 2000
+      max_text_length: 4000
       type: command
 updates:
   backup_keep: 5

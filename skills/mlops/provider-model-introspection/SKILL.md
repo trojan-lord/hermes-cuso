@@ -84,13 +84,72 @@ grep -rn "<provider_name>" ~/.hermes/hermes-agent/agent/model_metadata.py
 
 These files contain Hermes's internal knowledge of provider→model mappings and context window sizes.
 
+## Context Window Detection & Discrepancies
+
+Aliases on aggregator providers often report different context windows than the underlying model's native specs. Hermes resolves context via a multi-step chain in `model_metadata.py::get_model_context_length()`:
+
+1. Config override (`model.context_length`)
+2. Persistent cache (`~/.hermes/context_length_cache.yaml`)
+3. Endpoint metadata (`/v1/models`)
+4. Provider-specific probes (Nous, Codex OAuth, GMI, Ollama, models.dev)
+5. Hardcoded defaults (`DEFAULT_CONTEXT_LENGTHS` in `model_metadata.py`)
+6. Fallback: 256K
+
+**Key gotcha:** For aggregated/free providers like OpenCode Zen, the resolution lands at step 4f — `models.dev` registry lookup. The `opencode-zen` provider maps to `opencode` in models.dev (`PROVIDER_TO_MODELS_DEV`), and models.dev reports the *provider's* limit, not the model's native spec.
+
+Example: `big-pickle` resolves to 200K via models.dev, even though the underlying MiMo-V2.5 supports 1M natively. OpenCode Zen caps it at 200K on their proxy.
+
+### Probing context window discrepancies
+
+```python
+# Check what models.dev reports for a specific alias
+python3 -c "
+from agent.models_dev import lookup_models_dev_context
+print(lookup_models_dev_context('opencode-zen', 'big-pickle'))
+"  # returns 200000
+
+# Check what the hardcoded DEFAULT_CONTEXT_LENGTHS says
+python3 -c "
+import sys; sys.path.insert(0, '~/.hermes/hermes-agent')
+from agent.model_metadata import DEFAULT_CONTEXT_LENGTHS
+print(DEFAULT_CONTEXT_LENGTHS.get('mimo-v2.5'))  # returns 1048576
+"
+```
+
+### Querying models.dev directly
+
+```bash
+curl -s "https://models.dev/api.json" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+models = data.get('<provider>', {}).get('models', {})
+entry = models.get('<alias>', {})
+print(json.dumps(entry.get('limit', {}), indent=2))
+"
+```
+
+### Persisted context cache
+
+Hermes caches discovered context lengths in `~/.hermes/context_length_cache.yaml`. If a provider changes its limits, invalidate the cache:
+```python
+from agent.model_metadata import _invalidate_cached_context_length
+_invalidate_cached_context_length('big-pickle', 'https://opencode.ai/zen/v1')
+```
+
+## Context File Truncation
+
+Once the context window is known, Hermes uses it to budget how much of SOUL.md and other context files to inject into the system prompt. The dynamic formula (6% of context × 4 chars/token, floor 20K, ceiling 500K) means a 256K-context model gets ~61K chars for context files. See `references/context-file-truncation.md` for the full formula, head/tail truncation ratios (70%/20%), and implications for SOUL.md sizing on different context windows.
+
 ## Pitfalls
 
 - **Self-identification is not proof.** Models can misidentify themselves, especially smaller ones. Always cross-reference with architecture clues (context window, reasoning tokens, response style).
 - **Providers can swap backends without notice.** The alias stays the same; the underlying model changes. Periodic re-probing is the only way to detect this.
-- **Rate limits.** Probing multiple models rapidly may hit rate limits. Add delays between requests if needed.
+- **models.dev reports provider limits, not native model specs.** An aggregator may cap context well below what the underlying model supports. Always cross-reference the hardcoded `DEFAULT_CONTEXT_LENGTHS` with what models.dev reports — the gap reveals provider-imposed caps.
+- **Stale context cache.** If a provider raises limits, the persisted cache holds the old value. Use `_invalidate_cached_context_length()` to force re-resolution.
+- **Rate limits.** Probing multiple models rapidly may hit rate limits. Add delays between requests.
 - **The `/v1/models/{id}` endpoint often doesn't exist** for aggregator providers. Don't assume it will work.
 
 ## Reference Data
 
-See `references/opencode-zen-mimo.md` for specific data on OpenCode Zen's `big-pickle` alias and Xiaomi MiMo-V2.5.
+- `references/opencode-zen-mimo.md` — OpenCode Zen's `big-pickle` alias and Xiaomi MiMo-V2.5, including the 200K vs 1M context window discrepancy.
+- `references/context-file-truncation.md` — How Hermes uses context window size to calculate SOUL.md budgets, truncation ratios, and resolution order.

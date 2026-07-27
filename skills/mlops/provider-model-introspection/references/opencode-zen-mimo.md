@@ -9,18 +9,20 @@
 
 ## Known Alias → Model Mappings (July 2026)
 
-| Alias | Underlying Model | Provider | Notes |
-|-------|-----------------|----------|-------|
-| `big-pickle` | Xiaomi MiMo-V2.5 | Xiaomi | 1M context, reasoning tokens, free |
-| `mimo-v2.5-free` | Xiaomi MiMo-V2.5 | Xiaomi | Same model, different alias |
-| `deepseek-v4-flash-free` | DeepSeek V4 Flash | DeepSeek | Returned empty content on probe |
-| `north-mini-code-free` | Unknown | Unknown | Returned "None" content on probe |
+| Alias | Underlying Model | Provider | Native Context | Proxy Limit | Notes |
+|-------|-----------------|----------|----------------|-------------|-------|
+| `big-pickle` | Xiaomi MiMo-V2.5 | Xiaomi | 1M | **200K** | Reasoning model; models.dev caps at 200K |
+| `mimo-v2.5-free` | Xiaomi MiMo-V2.5 | Xiaomi | 1M | **200K** | Same underlying model, different alias |
+| `deepseek-v4-flash-free` | DeepSeek V4 Flash | DeepSeek | 1M | **200K** | Empty content on probe; models.dev caps at 200K |
+| `north-mini-code-free` | Unknown | Unknown | Unknown | **200K** | Returned "None" content on probe |
+
+**Critical:** The proxy limit (what OpenCode Zen actually serves) is 200K for all free-tier aliases, regardless of the underlying model's native context window. Hermes resolves this via the models.dev registry lookup step in `get_model_context_length()`, NOT from the hardcoded `DEFAULT_CONTEXT_LENGTHS` (which has `mimo-v2.5: 1048576`).
 
 ## Xiaomi MiMo-V2.5 Specs
 
 - **Total params:** 1T (v2-pro architecture)
 - **Active params:** 42B
-- **Context window:** 1M tokens
+- **Native context window:** 1M tokens (on Xiaomi direct API)
 - **Max output:** 128K tokens
 - **Architecture:** Hybrid attention (7:1 ratio), Multi-Token Prediction
 - **Modalities:** Text, image, video, audio understanding
@@ -45,7 +47,45 @@
 
 TTS models (mimo-v2.5-tts, voiceclone, voicedesign) are free for a limited time.
 
-### Key Behaviors Observed
+## models.dev Registry Data for OpenCode Zen
+
+All free-tier models report the same 200K context on models.dev:
+
+```json
+"big-pickle": {
+  "limit": { "context": 200000, "input": 160000, "output": 32000 }
+}
+```
+
+Query directly:
+```bash
+curl -s "https://models.dev/api.json" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+models = data.get('opencode', {}).get('models', {})
+for m in ['big-pickle', 'mimo-v2.5-free', 'deepseek-v4-flash-free']:
+    entry = models.get(m, {}).get('limit', {})
+    print(f\"{m}: context={entry.get('context', 'N/A')}\")
+"
+```
+
+## Hermes Resolution Chain for big-pickle
+
+```
+get_model_context_length('big-pickle', base_url='https://opencode.ai/zen/v1', provider='opencode-zen')
+  → step 0: no config override
+  → step 1: no persistent cache
+  → step 4f: models.dev lookup via lookup_models_dev_context('opencode-zen', 'big-pickle')
+    → PROVIDER_TO_MODELS_DEV maps 'opencode-zen' → 'opencode'
+    → fetches https://models.dev/api.json
+    → finds big-pickle under opencode.models
+    → returns limit.context = 200000
+  → result: 200000
+```
+
+The hardcoded `mimo-v2.5: 1048576` in `DEFAULT_CONTEXT_LENGTHS` is never reached because the models.dev step fires first.
+
+## Key Behaviors Observed
 
 - Uses reasoning/thinking tokens (visible in `usage.completion_tokens_details.reasoning_tokens`)
 - Responds to identity queries by stating "MiMo-V2.5, developed by Xiaomi LLM Core Team"
@@ -61,7 +101,7 @@ TTS models (mimo-v2.5-tts, voiceclone, voicedesign) are free for a limited time.
 # auxiliary_client.py — default auxiliary model per provider
 "opencode-zen": "gemini-3-flash"
 
-# model_metadata.py — context window sizes
+# model_metadata.py — context window sizes (hardcoded, NOT what big-pickle resolves to)
 "mimo-v2-pro": 1048576
 "mimo-v2.5-pro": 1048576
 "mimo-v2.5": 1048576

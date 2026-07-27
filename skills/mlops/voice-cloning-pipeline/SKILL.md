@@ -1068,7 +1068,7 @@ Hermes supports these placeholders in the command template:
 ```bash
 # In tts-provider.sh — final conversion step
 ffmpeg -y -i "$FULL_WAV" -af atempo=0.96 -codec:a libopus -b:a 64k "$OUTPUT_PATH"
-```
+**Output format:** Voice memos are OGG/Opus (`.ogg`), not MP3. The TTS provider outputs OGG for Discord/Telegram voice message compatibility. Always reference `.ogg` files in MEDIA: tags.
 
 **Required config in ~/.hermes/config.yaml:**
 ```yaml
@@ -1082,8 +1082,12 @@ tts:
       type: command
 ```
 
+**context_file_max_chars:** Do NOT set this explicitly. Hermes dynamically calculates it as 6% of the model's context window (floor 20K, ceiling 500K). For big-pickle (200K context), this yields ~48K chars. An explicit override in config.yaml bypasses this scaling and breaks when switching models. Removed `context_file_max_chars: 50000` from config on 2026-07-27.
+
 Without `output_format: ogg`, Hermes passes a `.mp3` path and the Opus codec fails (`Invalid audio stream. Exactly one MP3 audio stream is required`).
 Without `voice_compatible: true`, the `[[audio_as_voice]]` directive is not emitted, and the file is sent as a regular attachment instead of a voice message.
+
+**context_file_max_chars:** Do NOT set this explicitly in config.yaml. Hermes dynamically calculates it as 6% of the model's context window (floor 20K, ceiling 500K). For big-pickle (200K context via models.dev), this yields ~48K chars. An explicit override bypasses this scaling and breaks when switching models. Removed `context_file_max_chars: 50000` from config on 2026-07-27.
 
 **Telegram** needs opus (.ogg) too — same format works for both platforms.
 

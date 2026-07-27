@@ -4,6 +4,6 @@ User: Pola' Bea' (Daddy). Indian med pro (ortho path). Creative: worldbuilding, 
 §
 WiFi: 'god'. Protective of hardware. Primary device: iPad. iOS can't open local HTML files.
 §
-§ Prefers pixel-perfect/lossless conversions. Image→SVG: vector tracing = bad for photos. GitHub push rule: ONLY update repos that already have git init + remote. NEVER create new repos without explicit request. NEW PROJECTS: Always create a dedicated project folder first (mkdir -p ~/project-name), never dump files in home directory.
+§ Prefers pixel-perfect/lossless conversions. GitHub push rule: ONLY repos with git init + remote. NEVER create new repos. NEW PROJECTS: mkdir -p ~/project-name first. Voice workflow: send TTS text FIRST, audio SECOND (never combined). Discord gateway send_voice is broken — use curl to Discord API directly as workaround.
 §
 User R&D'ing biomimetic piezo muscle actuator — stepping/walking piezo + ultrasonic hybrid. Model: actin-myosin cross-bridge cycling. Key ref: Xeryon CrossFixx (20-48V, 166kHz resonant). Thinks in bio-mechanical analogies. Rejects needless complexity.
