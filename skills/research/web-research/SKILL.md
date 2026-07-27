@@ -35,7 +35,47 @@ curl -s "https://www.reddit.com/r/SUBREDDIT/search.json?q=QUERY&sort=top&t=year"
 
 **Critical**: Always include a realistic User-Agent. Many sites block requests without one.
 
-### 2. Fallback Search When Google is Blocked
+### 2. Reusable HTML Extraction Script (Avoid Quoting Hell)
+
+When doing multi-source web research, **write a reusable extraction script once** and pipe every source through it. Inline `python3 -c` with complex HTML parsing breaks on shell quoting.
+
+```python
+# Write to /tmp/extract.py at session start, reuse for every curl call
+import sys
+from html.parser import HTMLParser
+
+class TextExtractor(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.text = []
+        self.skip = False
+    def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style", "noscript"):
+            self.skip = True
+    def handle_endtag(self, tag):
+        if tag in ("script", "style", "noscript"):
+            self.skip = False
+    def handle_data(self, d):
+        if not self.skip:
+            s = d.strip()
+            if s:
+                self.text.append(s)
+    def get_text(self):
+        return " ".join(self.text)
+
+p = TextExtractor()
+p.feed(sys.stdin.read())
+print(p.get_text()[:8000])
+```
+
+**Usage:**
+```bash
+curl -sL -H 'User-Agent: Mozilla/5.0 ...' 'URL' | python3 /tmp/extract.py
+curl -sL -H 'User-Agent: Mozilla/5.0 ...' 'URL2' | python3 /tmp/extract.py
+# No quoting issues. Consistent output. Easy to modify once.
+```
+
+### 3. Fallback Search When Google is Blocked
 
 Google frequently blocks headless browsers and curl. **DuckDuckGo's HTML endpoint** is the primary fallback:
 
@@ -94,7 +134,32 @@ if match:
 "
 ```
 
-**Wikipedia** — use the REST API for clean text:
+**Wikipedia MediaWiki API** — returns clean wikitext, far better than HTML scraping:
+```bash
+# Get structured wikitext (article content, references, categories)
+curl -s "https://en.wikipedia.org/w/api.php?action=parse&page=TOPIC&prop=wikitext&format=json" \
+  | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+wikitext = d.get('parse', {}).get('wikitext', {}).get('*', '')
+# wikitext contains markup but no HTML — search and slice directly
+idx = wikitext.find('KEYWORD')
+if idx >= 0: print(wikitext[max(0,idx-200):idx+8000])
+"
+
+# Get plain-text extract (cleaner but shorter)
+curl -s "https://en.wikipedia.org/w/api.php?action=query&titles=TOPIC&prop=extracts&explaintext=true&format=json" \
+  | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+pages = d.get('query', {}).get('pages', {})
+for pid, page in pages.items():
+    print(page.get('extract', '')[:5000])
+"
+```
+**Why wikitext > HTML**: The `prop=wikitext` endpoint returns raw wikitext markup (no `<div>`, no CSS classes, no JS). You can slice it by keyword position without any HTML parsing. For episode summaries, character lists, and production sections, this is the single fastest path.
+
+**Wikipedia** — fallback to HTML scraping if API fails:
 ```bash
 curl -s "https://en.wikipedia.org/wiki/TOPIC" -A "Mozilla/5.0" | python3 -c "
 import sys, re
@@ -259,13 +324,16 @@ This reliably returns video IDs, titles, channels, and durations. Use it when th
 
 ## Pitfalls
 
+- **Load relevant skills BEFORE starting research.** If the user mentions creating a SOUL.md, building a character analysis, or similar, load `character-soul-forge` FIRST. If the user asks to research a topic, load `web-research`. Skill loading takes one tool call; discovering you missed a comprehensive workflow mid-task costs 20+ calls.
 - **NEVER retry an identical failed curl call** — if a curl request returns empty or errors, the result is the result. Re-running the exact same command will produce the exact same empty output. After 2 failed identical calls, STOP and try a different approach (browser_navigate, different search terms, different source). Getting stuck in identical-curl loops has wasted 20+ tool calls in past sessions.
 - **Google will block you** — don't waste time retrying; go straight to DuckDuckGo HTML
-- **Cloudflare-protected fandom wikis** — most fandom.com wikis are behind Cloudflare challenges; find the same info on TV Tropes or Wikipedia instead
+- **Cloudflare-protected fandom wikis** — most fandom.com wikis are behind Cloudflare challenges; find the same info on TV Tropes or Wikipedia instead. The Fandom API (`/api.php?action=parse&page=TOPIC&format=json`) also fails behind Cloudflare — no workaround without residential proxies.
 - **AI-generated content on character sites** — sites like shapes.inc/fandom generate realistic but fabricated quotes; always verify against transcripts or TV Tropes
-- **Reddit JSON API may return empty** — the old.reddit.com JSON endpoint sometimes fails; use DuckDuckGo to find Reddit threads instead
+- **Reddit JSON API may return empty** — the old.reddit.com JSON endpoint sometimes fails; use DuckDuckGo to find Reddit threads instead. **Also try**: old.reddit.com HTML search (`curl -sL "https://old.reddit.com/r/SUBREDDIT/search?q=QUERY&restrict_sr=on&sort=relevance&t=all"`) piped through the extraction script — this often works even when the JSON API and new Reddit are both blocked.
 - **Later episodes may lack transcripts** — SpringfieldSpringfield often only has first few episodes; plan around this
 - **Curl User-Agent matters** — many sites require a realistic browser User-Agent or return empty/blocked pages
+- **"Everything is blocked" scenario** — When Google, DuckDuckGo, Fandom, TV Tropes, AND Reddit are ALL blocked (aggressive bot detection on the session's IP), fall back to: (1) Wikipedia HTML + API (usually accessible), (2) known entertainment review sites (THR, Variety, Animation Magazine — try status codes first), (3) browser_navigate for JS-rendered pages, (4) follow reference links inside Wikipedia articles (they contain verified URLs to interviews and reviews). Check reference URLs in batch: `curl -sL -o /dev/null -w '%{http_code}' 'URL'` for each before attempting full fetch.
+- **Wikipedia references are goldmines** — Wikipedia articles on TV shows contain direct links to creator interviews, reviews, and analyses. Extract all reference URLs from the article, check which return 200, then fetch those. This bypasses search engine blocking entirely. Pattern: parse `<ref>` tags from wikitext, extract URLs, batch-check HTTP status codes.
 
 ## Academic & Patent Database Research
 
