@@ -22,17 +22,17 @@
       "schedule_display": "every 360m",
       "repeat": {
         "times": null,
-        "completed": 13
+        "completed": 16
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-07-23T16:19:49.825830+05:30",
-      "next_run_at": "2026-07-27T05:48:57.346122+05:30",
-      "last_run_at": "2026-07-26T23:48:57.346122+05:30",
-      "last_status": "error",
-      "last_error": "Gateway shutdown (final-cleanup) killed the job's tool subprocess before the run finished.",
+      "next_run_at": "2026-07-27T23:52:19.326880+05:30",
+      "last_run_at": "2026-07-27T17:52:19.326880+05:30",
+      "last_status": "ok",
+      "last_error": null,
       "last_delivery_error": null,
       "deliver": "local",
       "origin": {
@@ -47,5 +47,5 @@
       "fire_claim": null
     }
   ],
-  "updated_at": "2026-07-26T23:48:57.346492+05:30"
+  "updated_at": "2026-07-27T17:52:19.327421+05:30"
 }
