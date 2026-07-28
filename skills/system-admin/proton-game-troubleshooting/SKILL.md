@@ -71,6 +71,16 @@ WINEPREFIX=~/.steam/steam/steamapps/compatdata/appid/pfx WINEDEBUG=err+seh,err+l
 
 **Pitfall**: If Proton tool not set before first launch, compatdata may be corrupted. Delete and relaunch.
 
+### Non-Steam Game AppID & Proton Switching
+
+See `references/non-steam-game-proton-switching.md` for the complete workflow:
+- Extracting a non-Steam game's internal appid from shortcuts.vdf
+- Signed-to-unsigned appid conversion
+- Changing Proton versions programmatically via config.vdf's CompatToolMapping
+- Launching via steam://rungameid/ and -applaunch
+- Monitoring launch in Steam logs
+- Process detection limitations when testing from a headless terminal
+
 ## Cleanup Protocol
 
 ALWAYS clean up after troubleshooting. Before debugging, note what exists. After, restore it.

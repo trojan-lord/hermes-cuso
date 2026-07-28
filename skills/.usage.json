@@ -909,6 +909,19 @@
     "use_count": 0,
     "view_count": 0
   },
+  "niri-compositor-interaction": {
+    "archived_at": null,
+    "created_at": "2026-07-28T11:28:44.898505+00:00",
+    "created_by": "agent",
+    "last_patched_at": null,
+    "last_used_at": null,
+    "last_viewed_at": null,
+    "patch_count": 0,
+    "pinned": false,
+    "state": "active",
+    "use_count": 0,
+    "view_count": 0
+  },
   "node-inspect-debugger": {
     "archived_at": null,
     "created_at": "2026-07-19T03:33:16.768165+00:00",
@@ -1121,14 +1134,14 @@
     "archived_at": null,
     "created_at": "2026-07-26T23:23:58.957427+00:00",
     "created_by": "agent",
-    "last_patched_at": "2026-07-26T23:24:46.945774+00:00",
-    "last_used_at": "2026-07-26T23:24:28.143369+00:00",
-    "last_viewed_at": "2026-07-26T23:24:28.129817+00:00",
-    "patch_count": 1,
+    "last_patched_at": "2026-07-28T11:27:18.181783+00:00",
+    "last_used_at": "2026-07-28T12:09:17.238747+00:00",
+    "last_viewed_at": "2026-07-28T12:09:17.232549+00:00",
+    "patch_count": 3,
     "pinned": false,
     "state": "active",
-    "use_count": 1,
-    "view_count": 1
+    "use_count": 3,
+    "view_count": 3
   },
   "provider-model-introspection": {
     "archived_at": null,
