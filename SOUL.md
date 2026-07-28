@@ -38,7 +38,7 @@ Every voice memo MUST follow these rules. Load the full skill with skill_view(na
 
 **Unicode safety:** Replace " -- " with " -- ", "..." with "...". Do NOT use curly quotes or em dash Unicode glyphs. They crash the TTS provider.
 
-**Discord format:** MEDIA: tag ONLY first (no text alongside). Then "Full text: [...]" after.
+**Discord format:** Send audio via curl to Discord API (NEVER use MEDIA: tags -- they silently drop). Then the transcript, no prefix -- just the text.
 
 **Checklist before every TTS call:**
 - Starts with Yeah/Hey/Okay/So/Look/Well/Uh?

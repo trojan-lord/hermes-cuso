@@ -98,8 +98,11 @@ results = re.findall(
 | Topic Type | Best Sources | Notes |
 |---|---|---|
 | TV/Film characters | TV Tropes (Characters/ + WesternAnimation/) | Most detailed character tropes and dialogue |
-| TV/Film dialogue | SpringfieldSpringfield.co.uk | Episode transcripts; use `s01e01` format |
+| TV/Film dialogue | **WikiQuote** (`en.wikiquote.org/wiki/SHOW_(film)`) + SpringfieldSpringfield.co.uk | WikiQuote has full film scene dialogue with character attribution — excellent for character speech patterns. SpringfieldSpringfield for episode transcripts; use `s01e01` format. |
+| Book/film character quotes | **Goodreads** (`goodreads.com/quotes/tag/CHARACTER`) | Paginated (`?page=1`, `?page=2`). Returns clean, attributed quotes via `class="quoteText"` blocks. Single best source for volume character quotes — often 15-20+ per character. Parse with `re.findall(r'class="quoteText">(.*?)</span>', html, re.DOTALL)`. |
+| Literary/book characters | **LitCharts, Shmoop, Goodreads** | Per-chapter character analyses with thematic breakdowns, quotes, timeline. Often accessible when Fandom/Google are blocked. LitCharts tags quotes by character and chapter. Goodreads for quote volume. |
 | Literary/encyclopedic | SF Encyclopedia, Wikipedia API | Dense plot summaries, thematic analysis |
+| Creator interviews | accio-quote.org (HP), fandom-specific archives | Has a **curated topic index** (Characters → sub-pages like "Students", "Staff", "Voldemort"; Wizarding World → "Animals & Creatures", "Death", "Wands"; Books 1-7) — navigate the topic index FIRST before brute-force grepping individual interviews. Topic pages collect all related quotes from across interviews with links to full sources. |
 | Fan community | Reddit JSON API, dedicated wikis | Opinions, theories, corrections |
 | Academic | arXiv, Google Scholar | Papers, citations |
 
@@ -159,6 +162,49 @@ for pid, page in pages.items():
 ```
 **Why wikitext > HTML**: The `prop=wikitext` endpoint returns raw wikitext markup (no `<div>`, no CSS classes, no JS). You can slice it by keyword position without any HTML parsing. For episode summaries, character lists, and production sections, this is the single fastest path.
 
+**Goodreads quote extraction** (character quotes with attribution):
+```bash
+# Extract quotes tagged with a character name (paginated: page=1, page=2, ...)
+curl -sL "https://www.goodreads.com/quotes/tag/CHARACTER_NAME" \
+  -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+  | python3 -c "
+import sys, re, html as h
+text = sys.stdin.read()
+blocks = text.split('class=\"quoteText\"')
+for block in blocks[1:30]:
+    quote_part = block.split('</span>')[0] if '</span>' in block else block[:500]
+    clean = re.sub(r'<[^>]+>', '', quote_part)
+    clean = h.unescape(clean).strip()
+    clean = re.sub(r'\s+', ' ', clean)
+    if clean and len(clean) > 20:
+        print(clean[:500])
+        print('---')
+"
+```
+**Why Goodreads**: Returns clean, attributed quotes in bulk. No bot detection. Pagination via `?page=N` gives 15-20+ quotes per character. The `class="quoteText"` block contains the quote text; author/source appears in nearby `<span>`.
+
+**WikiQuote film dialogue extraction**:
+```bash
+# Full film dialogue — much richer than IMDB quotes
+curl -sL "https://en.wikiquote.org/wiki/SHOW_TITLE_(film)" -A "Mozilla/5.0" \
+  | python3 -c "
+import sys, re, html as h
+text = sys.stdin.read()
+lines = text.split('\n')
+for i, line in enumerate(lines):
+    clean = re.sub(r'<[^>]+>', ' ', line)
+    clean = h.unescape(clean).strip()
+    if clean and 'CHARACTER_NAME' in clean:
+        context = lines[max(0,i-2):i+5]
+        for c in context:
+            c2 = re.sub(r'<[^>]+>', ' ', c).strip()
+            c2 = h.unescape(c2)
+            if c2 and len(c2) > 5: print(c2)
+        print('---')
+"
+```
+**Why WikiQuote**: Full scene dialogue with character attribution, stage directions preserved, much more comprehensive than IMDB quotes section. Covers all characters, not just the one you're searching for — useful for understanding character interactions.
+
 **Wikipedia** — fallback to HTML scraping if API fails:
 ```bash
 curl -s "https://en.wikipedia.org/wiki/TOPIC" -A "Mozilla/5.0" | python3 -c "
@@ -184,6 +230,8 @@ if idx >= 0: print(text[max(0,idx-200):idx+3000])
 - Actual episode transcripts (SpringfieldSpringfield)
 - SF Encyclopedia (expert literary analysis)
 - Wikipedia (community-edited, sourced)
+- **LitCharts, Shmoop** (literary analysis with quotes, themes, character timelines — accessible via curl, content is well-structured)
+- **Niche fan analysis sites** (e.g., harrypotterinsider.com, dedicated character blogs) — often more accessible than major platforms, provide comprehensive deep dives. Verify against canon but they're surprisingly good for consolidated overviews.
 
 ### 6. Parallel Execution Strategy
 
@@ -327,12 +375,13 @@ This reliably returns video IDs, titles, channels, and durations. Use it when th
 - **Load relevant skills BEFORE starting research.** If the user mentions creating a SOUL.md, building a character analysis, or similar, load `character-soul-forge` FIRST. If the user asks to research a topic, load `web-research`. Skill loading takes one tool call; discovering you missed a comprehensive workflow mid-task costs 20+ calls.
 - **NEVER retry an identical failed curl call** — if a curl request returns empty or errors, the result is the result. Re-running the exact same command will produce the exact same empty output. After 2 failed identical calls, STOP and try a different approach (browser_navigate, different search terms, different source). Getting stuck in identical-curl loops has wasted 20+ tool calls in past sessions.
 - **Google will block you** — don't waste time retrying; go straight to DuckDuckGo HTML
-- **Cloudflare-protected fandom wikis** — most fandom.com wikis are behind Cloudflare challenges; find the same info on TV Tropes or Wikipedia instead. The Fandom API (`/api.php?action=parse&page=TOPIC&format=json`) also fails behind Cloudflare — no workaround without residential proxies.
+- **Cloudflare-protected fandom wikis** — most fandom.com wikis are behind Cloudflare challenges; find the same info on TV Tropes or Wikipedia instead. The Fandom API (`/api.php?action=parse&page=TOPIC&format=json`) also fails behind Cloudflare. **Fallback: Wayback Machine** — `web.archive.org/web/TIMESTAMP/URL` often has cached snapshots of wiki pages that bypass Cloudflare entirely. Use the browser to navigate: `https://web.archive.org/web/2023/https://harrypotter.fandom.com/wiki/TOPIC`. The Wayback Machine sometimes renders the full page content including JavaScript, giving you the complete article. For API access, try the raw archived version: `https://web.archive.org/web/TIMESTAMPid_/https://harrypotter.fandom.com/api.php?action=parse&page=TOPIC&format=json`. Check `web.archive.org/web/` homepage for available snapshots first.
 - **AI-generated content on character sites** — sites like shapes.inc/fandom generate realistic but fabricated quotes; always verify against transcripts or TV Tropes
 - **Reddit JSON API may return empty** — the old.reddit.com JSON endpoint sometimes fails; use DuckDuckGo to find Reddit threads instead. **Also try**: old.reddit.com HTML search (`curl -sL "https://old.reddit.com/r/SUBREDDIT/search?q=QUERY&restrict_sr=on&sort=relevance&t=all"`) piped through the extraction script — this often works even when the JSON API and new Reddit are both blocked.
 - **Later episodes may lack transcripts** — SpringfieldSpringfield often only has first few episodes; plan around this
 - **Curl User-Agent matters** — many sites require a realistic browser User-Agent or return empty/blocked pages
 - **"Everything is blocked" scenario** — When Google, DuckDuckGo, Fandom, TV Tropes, AND Reddit are ALL blocked (aggressive bot detection on the session's IP), fall back to: (1) Wikipedia HTML + API (usually accessible), (2) known entertainment review sites (THR, Variety, Animation Magazine — try status codes first), (3) browser_navigate for JS-rendered pages, (4) follow reference links inside Wikipedia articles (they contain verified URLs to interviews and reviews). Check reference URLs in batch: `curl -sL -o /dev/null -w '%{http_code}' 'URL'` for each before attempting full fetch.
+- **Wikipedia redirect trap** — When a topic redirects (e.g., `Dobby_(Harry_Potter)` → `List_of_Harry_Potter_characters`), the `action=parse` API returns `#REDIRECT List of X` with no actual content, and the `action=query&prop=extracts` API returns empty. Detect this by checking if the response starts with `#REDIRECT` or is suspiciously short. Fallback: search the list page's wikitext for the character name, or use browser_navigate on the list page and search the snapshot for the character section.
 - **Wikipedia references are goldmines** — Wikipedia articles on TV shows contain direct links to creator interviews, reviews, and analyses. Extract all reference URLs from the article, check which return 200, then fetch those. This bypasses search engine blocking entirely. Pattern: parse `<ref>` tags from wikitext, extract URLs, batch-check HTTP status codes.
 
 ## Academic & Patent Database Research

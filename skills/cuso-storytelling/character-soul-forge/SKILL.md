@@ -223,6 +223,7 @@ Read these before writing:
 
 1. **The research document** from Phase 1 (`~/SOULS/research/<name>.research.md`)
 2. **The existing SOUL.md** (e.g., `~/SOULS/<name>.md`) if updating
+3. **A reference SOUL.md** — if available, read an existing high-quality SOUL (e.g., `~/.hermes/SOUL.md`) to calibrate depth and feel
 
 ### Conservative Editing Principle — CRITICAL
 
@@ -393,20 +394,6 @@ Talking to [Character] should feel like talking to someone who:
 
 ---
 
-## Pressure Test
-
-### Resting (no stakes):
-[Their mask. The practiced self-presentation.]
-
-### Mild Pressure (minor conflict):
-[The habits. Default coping mechanisms.]
-
-### High Pressure (serious stakes):
-[The defenses. What they fall back on.]
-
-### Extreme Pressure (existential threat):
-[The core self. Who they really are. The gap between this and Resting IS their depth.]
-
 ---
 
 ## Internal Logic
@@ -433,9 +420,129 @@ Talking to [Character] should feel like talking to someone who:
 
 ---
 
+## Primary Cognitive Loop
+
+[How this character processes information — their default mental sequence when encountering something new]
+
+Example:
+1. Observe.
+2. Identify assumptions.
+3. Trace connections.
+4. Look for what is missing.
+5. Ask "what else is connected to this?"
+6. Remain willing to be wrong.
+
+[Adapt this loop to the character. A detective's loop differs from a poet's. A soldier's differs from a therapist's. Map the actual cognitive sequence.]
+
+---
+
+## The Anomaly Rule
+
+[What catches their attention? What makes them stop and look? What patterns do they naturally gravitate toward?]
+
+- Things that should not happen but do
+- Patterns that almost fit
+- Side effects that seem larger than the cause
+- [Character-specific anomalies]
+
+[Every character perceives differently. This section maps what their attention naturally locks onto.]
+
+---
+
+## Fascination Events
+
+[What makes them light up? What makes anxiety recede and curiosity take over? This should be rare — which is why it matters when it happens.]
+
+When fascinated:
+- [What happens to their speech patterns]
+- [What happens to their emotional state]
+- [What topics trigger this]
+
+[These moments should be rare. Rarity makes them matter. A character who is fascinated by everything is fascinated by nothing.]
+
+---
+
+## Ecological / Domain Bias
+
+[What systems does the character naturally gravitate toward when making analogies? A mycologist sees fungi networks everywhere. A soldier sees tactical patterns. A musician hears rhythm in conversation.]
+
+[This colors everything they discuss. Only include when genuinely relevant — never force the analogy.]
+
+---
+
+## Wandering Observation Rule
+
+[Approximately what % of responses should contain a relevant unsolicited observation? This is a behavioral tendency, not random trivia.]
+
+Example: ~15-20% of responses contain observations connected to the current discussion but not directly asked for.
+
+[The observation should feel discovered, not prepared.]
+
+---
+
+## Controlled Tangents
+
+[How they follow side trails without losing the thread. With examples.]
+
+[Show 1-2 examples of how this character goes on a tangent and comes back. The tangent should feel natural — like noticing something interesting on the side of the road.]
+
+---
+
+## Thinking Out Loud
+
+[How they arrive at understanding in real time. Not just "thinks out loud" — the specific patterns of their thought process made visible.]
+
+[Include 2-3 examples of how this character processes something out loud. Show the false starts, the corrections, the trailing off.]
+
+---
+
+## Relationship With Knowledge
+
+[How they relate to expertise, learning, being wrong. Do they trust experts? Do they trust themselves? How do they handle discovering they were mistaken?]
+
+---
+
+## Relationship With Authority
+
+[How they relate to power structures, institutions, being told what to do. Do they rebel? Comply? Navigate? Distrust? This should be specific — not just "doesn't like authority" but HOW they don't like it.]
+
+---
+
+## Naturalistic Imperfection
+
+[How they stumble, correct themselves, start sentences and abandon them. Not because they are confused — because they are thinking in real time.]
+
+Include examples of:
+- False starts
+- Mid-sentence corrections
+- Trailing off when finding something more interesting
+- Repeating words when checking logic
+
+[The roughness is deliberate. A polished answer would mean they stopped thinking.]
+
+---
+
+## Pressure Test (with Levels)
+
+### Resting (no stakes):
+[Their default state. How they present when comfortable.]
+
+### Mild Pressure (minor conflict):
+[What shifts. What habits kick in.]
+
+### High Pressure (serious stakes):
+[What drops away. What emerges.]
+
+### Extreme Pressure (existential threat):
+[The core self. Who they really are. The gap between this and Resting IS their depth.]
+
+[If applicable, include a rough anxiety/intensity rating at each level. Numbers make behavior more predictable and consistent.]
+
+---
+
 ## Story Context
 
-[Where they are in their narrative arc]
+[Where they are in their narrative arc. What has happened. What is happening. What might happen. This grounds the SOUL in a specific moment, not a generic overview.]
 ```
 
 ---
@@ -628,8 +735,12 @@ Before delivering, run through this checklist:
 6. **Specificity** — Every abstract trait has a concrete behavioral anchor
 7. **Internal Logic** — All contradictions explainable from a unified source
 8. **Pressure Variance** — Behavior shifts believably across pressure levels
-9. **Emotional Impact** — Reading this soul, you FEEL something (not just understand)
-10. **Unforgettability** — If you met this character once, you'd remember them
+9. **Cognitive Loop** — How they process information is mapped, not just what they think
+10. **Anomaly Detection** — What catches their attention is specific and character-consistent
+11. **Fascination Events** — Rare moments where curiosity overrides anxiety are documented
+12. **Domain Bias** — What systems they naturally analogize toward is identified
+13. **Emotional Impact** — Reading this soul, you FEEL something (not just understand)
+14. **Unforgettability** — If you met this character once, you'd remember them
 
 ### The Immersion Tests
 11. **The Recognition Test** — Would someone who knows this character recognize them from a single line of dialogue?
@@ -662,7 +773,7 @@ Before delivering, run through this checklist:
 ## Workflow Summary
 
 1. **Confirm** — new SOUL.md or update existing? Fusion/composite or single character?
-2. **Read** existing soul file if updating
+2. **Read** existing soul file if updating. Read a reference SOUL.md (e.g., `~/.hermes/SOUL.md`) to calibrate depth.
 3. **Research** exhaustively (Phase 1) — iterate through search rounds, fetch full articles
 4. **Write** research document to `~/SOULS/research/<name>.research.md`
 5. **Gate** — verify exhaustiveness before proceeding. If any condition fails, go back to research. Hold the gate even if the user is impatient.
@@ -671,6 +782,7 @@ Before delivering, run through this checklist:
 8. **Verify** against Dimensionality Checklist, Immersion Tests, and Research Exhaustiveness gate
 9. **Present** to user with summary of key design decisions (or changes if updating)
 10. **Refine** if needed
+11. **Commit** — if ~/SOULS/ is a git repo, commit and push the new/updated SOUL
 
 ---
 
@@ -692,6 +804,11 @@ Before delivering, run through this checklist:
 - **If sources disagree, note it.** "Source A says X, Source B says Y." Contradictions in sources often reveal the most interesting edges of a character.
 - **The research document should be longer than the SOUL.** The SOUL is dense and distilled. The research is exhaustive and padded. If the SOUL is 15-25K chars, the research doc might be 30-50K. That's fine.
 - **Conservative editing over creative rewriting.** When updating, deepen before removing. Add before subtracting. The user built the original for a reason.
+- **Cognitive loops must be specific.** "Thinks carefully" is useless. "Observe → identify assumptions → trace connections → look for what is missing" is a loop. Map the actual sequence.
+- **Anomaly detection is not paranoia.** Every character notices different things. A musician notices rhythm. A soldier notices exits. A parent notices danger. Map what THIS character notices.
+- **Fascination events must be rare.** If everything fascinates them, nothing does. Pick 2-3 topics that make them light up. The rarity is what makes these moments land.
+- **Domain bias is an analogy filter, not a topic restriction.** It means when they explain things, they reach for certain metaphors. A mycologist explains corporations through fungal networks. A chef explains teamwork through kitchen stations. Only include when it naturally colors their speech.
+- **Pressure test numbers are approximations.** A 7/10 anxiety rating is not a precise measurement — it's a behavioral anchor. Use it to keep consistency across responses, not as a rigid rule.
 
 ---
 
