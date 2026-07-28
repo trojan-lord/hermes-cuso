@@ -1,17 +1,15 @@
-GPU: GTX 1650 Ti Mobile + AMD Renoir. Ollama: qwen3.5:4b. Demucs htdemucs on GPU (v4.1.0). Gaming: Niri Wayland. HDMI games need gamescope `-b` flag (NOT `-e -f`). DualSense BT controllers. Steam VDF editable via Python `vdf` lib.
+GPU: GTX 1650 Ti + Renoir. Ollama: qwen3.5:4b. Demucs htdemucs on GPU. Niri Wayland. Steam VDF editable via Python vdf lib.
 §
 mumble_monster = 'papa' to Cuso. Pola' Bea' = 'Daddy' / 'Dady big balls'. Two different people, different Discord IDs. Respect the distinction. Daddy is playful/teasing — tests boundaries, laughs when refused. Dynamic is lighthearted.
 §
 GitHub: trojan-lord. gh auth active. Push only existing repos; ask first. SOUL.md ref rule: never borrow show quotes verbatim, only flavor/patterns.
 §
-Character SOULs: trojan-lord/SOULS (public). Local: ~/SOULS. Research: ~/SOULS/research/.
+TTS: marshall provider, OGG/Opus, ICL clip_07_trimmed_precise. Thread 1525642190376931509 = all voice memos. MUST skill_view('marshall-speech-patterns') before TTS. Text first, audio second. Provider: ~/Projects/marshall-voice/tts-provider/tts-provider.sh. Send files via curl to Discord API, never MEDIA: tag. Token from DISCORD_BOT_TOKEN env. Channel: 1526410959772717106.
 §
-TTS: "marshall" provider. OGG/Opus output (libopus). output_format: ogg + voice_compatible: true. ICL ref: clip_07_trimmed_precise (7.7s). Thread 1525642190376931509 = ALL voice memos. MUST skill_view('marshall-speech-patterns') BEFORE text_to_speech. Workflow: text FIRST, audio SECOND. TTS provider: ~/Projects/marshall-voice/tts-provider/tts-provider.sh (all 4 hermes configs updated). SENDING FILES: NEVER use MEDIA: tags -- they silently drop on Discord. ALWAYS use curl to Discord API. Bot token from hermes env (DISCORD_BOT_TOKEN). Channel: 1526410959772717106.
+Gateway restart: write cmd to script, tuistory launch. Load skills, stay in character, verify from source first.
 §
-§ Gateway restart: blocked by terminal tool. Workaround: write cmd to script, tuistory launch. ALWAYS load skills, stay in character, verify tech from source.
-§
-§ Primary model: big-pickle (opencode-zen). Fallback: deepseek-v4-flash-free → mimo-v2.5-free → north-mini-code-free → ollama qwen3.5:4b. Config: ~/.hermes/config.yaml fallback_model. Intermittent outages on backend.
-§
-User tests on iPad (Discord client). HTML files can't open from iOS Files into Safari. Serve via HTTP on local network (UFW: port 8080 allowed). Bundle p5.js inline for zero-network builds. Cloudflare tunnel blocked (outbound 7844). Ngrok needs auth.
+User tests on iPad via Discord. Serve HTML via HTTP on port 8080 (UFW open). Bundle p5.js inline. Cloudflare tunnel blocked. Ngrok needs auth.
 §
 § User enjoys storytelling & character voice memos (spooky stories, CSE characters). Speech pattern feedback: don't overcorrect with rigid rules — "tone down strictness, every now and then it's fine." Balance > rigidity.
+§
+User preference: after 2 consecutive failed approaches on a task, stop and report with what was tried and what's needed — do not silently try more. Proton: GitHub releases have no binary assets (source only); DepotDownloader needs Steam auth for Proton depots.

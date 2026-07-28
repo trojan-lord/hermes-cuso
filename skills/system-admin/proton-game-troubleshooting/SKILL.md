@@ -106,9 +106,33 @@ Stop and recommend alternatives when:
 
 Do research BEFORE diving deep into debugging. Be direct with the user when something will not work.
 
+## ⚠️ Critical: Rabbit Hole Awareness
+
+The most common failure pattern in this domain is **silent persistence through dead ends**. If you hit a wall (command not found, auth required, no assets, permission denied), do NOT silently try 3+ different approaches.
+
+**Rule**: After 2 consecutive failed approaches to achieve any single task (installing a tool, downloading a Proton version, etc.), stop and report to the user:
+- What you tried
+- What failed (exact error)
+- What you need from them to proceed (credentials, decision, alternative)
+
+Do not go past 2 silent failures. The user would rather hear "I need X" than read 10 failed terminal outputs.
+
+## Proton Version Availability
+
+### Older Proton Versions
+- **GitHub releases (ValveSoftware/Proton)**: Only contain source code tarballs, NOT compiled binaries. The `assets` array on any tag release is typically empty.
+- **Binary distribution**: Proton binaries are served exclusively through Steam's content delivery system (depots).
+- **DepotDownloader**: CAN download older Proton depots, but **requires an authenticated Steam account** — anonymous login does not have access. You'll need either:
+  - The user's Steam password (use `-username <user>` and it will prompt)
+  - QR code login (`-qr` flag)
+  - Already-remembered password (`-remember-password` after first login)
+- **steamcmd**: Same limitation — cannot download Proton depots anonymously.
+- **Recommended approach**: Before attempting any Proton depot download, ask the user how they want to authenticate first. Do not try anonymous methods first — they will all fail.
+
 ## Known Incompatible Crack Patterns
 
 - CODEX OrangeEmu64.dll: NO - Windows RPC dependency, RPC_S_SERVER_UNAVAILABLE crash
 - CODEX OrangeEmu.dll (32-bit): NO - Same RPC dependency
 - Empress: Varies - Some newer cracks avoid RPC, check per-game
 - FitGirl: N/A - Installer uses whatever crack was in the ISO
+- STP (STEAMPUNKS) Origin Emulator (`stp-origin_emu.dll`): NO - Same class as CODEX, Origin launcher bypass, crashes with exit code 10 on all Proton versions. See `references/crack-patterns-stp-origin-emu.md`.
