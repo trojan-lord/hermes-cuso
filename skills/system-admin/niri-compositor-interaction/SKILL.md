@@ -76,6 +76,23 @@ When an X11 app (Steam Big Picture, games, Wine) shows up tiled/half-screen on n
 
 Steam-specific case study (Big Picture fullscreen regression, issue numbers, evidence): see `references/steam-fullscreen-xwayland-case.md`.
 
+## Steam Big Picture Fullscreen: Gamescope Wrapper (Automatic Fix)
+
+If BPM never goes fullscreen on niri (window sits tiled/floating at request size) and the user wants it AUTOMATIC every launch — not a manual Mod+F — wrap Steam in gamescope:
+
+```bash
+gamescope -f -e -- steam -gamepadui
+```
+
+- `-e` = "enable Steam integration" (gamescope 3.16+). `-f` = fullscreen. Gamescope owns the surface and presents it as a true fullscreen layer, so the XWayland fullscreen handoff problem disappears.
+- **CRITICAL pitfall**: if Steam is already running, `steam -gamepadui` just signals the existing instance and gamescope exits immediately (its child returns right away). The launcher MUST shut Steam down first (`steam -shutdown`, poll `pgrep -x steam` up to ~30s) before starting gamescope.
+- niri 26.04 has **no window-rule that forces fullscreen** (checked `/usr/share/doc/niri/default-config.kdl`: only open-floating, geometry, default-column-width, block-out-from exist). So gamescope is the only compositor-side automatic route; manual alternative stays `Mod+F` / `niri msg action fullscreen-window`.
+- **Verification**: `niri msg windows` → the gamescope window shows Title `Steam Big Picture Mode`, App ID `gamescope`, tiled full (Window size == output size, offset `0 x 0`, `Is floating: no`).
+- **Smoke test without touching the real session**: `timeout 8 gamescope -- sh -c 'echo ok; sleep 3'` — a clean Wayland backend init + child run means gamescope works on this session. Trailing `(EE) failed to read Wayland events: Broken pipe` is harmless (XWayland closing after gamescope exits).
+- Session rendering context matters: on hybrid GPU boxes the Wayland session usually renders on the iGPU, so games within gamescope run on the iGPU, not the dGPU (dGPU stays compute-only unless prime-offload is set up).
+
+Known-good launcher script + desktop entry: `templates/steam-bigpicture.sh` and the reference `references/steam-bigpicture-gamescope.md`.
+
 ## Common Actions
 
 - `spawn -- <cmd>` -- Launch a command
@@ -91,5 +108,7 @@ Steam-specific case study (Big Picture fullscreen regression, issue numbers, evi
 - **Wrong socket path**: The PID in the socket filename is Niri's PID. Use `pgrep -x niri`.
 - **pkill -f steam is dangerous**: Can match the agent's own processes. Use specific patterns.
 - **Spawn doesn't return PID**: Use `pgrep -f <pattern>` after spawning to find the process.
+- **`niri msg action spawn` REQUIRES `--`**: `niri msg action spawn /path/to/cmd` fails with "unexpected argument" — must be `niri msg action spawn -- /path/to/cmd`. (`niri msg action spawn-sh` takes a plain string, no `--`.)
+- **Desktop entries launched from a test shell die with it**: running `gtk-launch <entry>` or the .desktop Exec from a foreground test shell means the wrapper process group gets cleaned up when the shell exits — gamescope vanishes, Steam's shutdown logic may still have run. To launch detached for real, use `niri msg action spawn -- <launcher>`.
 - **All X11 windows report the SAME PID in `niri msg windows`**: xwayland-satellite owns every X window, so `niri msg windows` attributes them all to the satellite's PID. Match on Title/App ID instead — never filter X11 windows by PID.
 - **python-xlib not installed**: don't `pip install --user` into the system python (fails on Arch-managed envs) — make a throwaway venv at /tmp/xlibenv.

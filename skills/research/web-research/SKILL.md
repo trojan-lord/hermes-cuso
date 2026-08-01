@@ -93,6 +93,33 @@ results = re.findall(
 )
 ```
 
+#### Bing via Browser (when DuckDuckGo CAPTCHAs)
+
+DuckDuckGo now throws a "select all squares containing a duck" CAPTCHA at headless traffic — both `html.duckduckgo.com` via curl (returns HTTP 200 but an empty regex parse) AND the browser. **Do not retry DDG**; switch to Bing:
+
+1. `browser_navigate` to `https://www.bing.com/search?q=QUERY` (quote exact phrases with `%22`).
+2. Bing curl scraping also fails — the page is a JS shell (HTTP 200 but zero `b_algo` elements). Extract results with `browser_console` instead:
+```javascript
+(() => {
+  const results = document.querySelectorAll('#b_results > li');
+  let out = [];
+  results.forEach((li, i) => {
+    const titleEl = li.querySelector('h2');
+    const urlEl = li.querySelector('cite, .b_attribution');
+    const snipEl = li.querySelector('.b_caption p, .b_lineclamp2, .b_lineclamp3, .b_lineclamp4');
+    if (titleEl) {
+      out.push(`${i+1}. ${titleEl.innerText}\n   ${snipEl ? snipEl.innerText.substring(0,250) : ''}\n   ${urlEl ? urlEl.innerText : ''}`);
+    }
+  });
+  return out.join('\n\n') || 'no results found';
+})()
+```
+3. Result hrefs are Bing redirect wrappers (`bing.com/ck/a?...&u=a1aHR0cHM6...`). The `u=` query param is **base64 of the real URL** — decode it:
+```bash
+python3 -c "import base64,sys; print(base64.b64decode(sys.argv[1]).decode())" 'a1aHR0cHM6Ly93d3cuYmJjLmNvbS9uZXdzL2FydGljbGVzL2NkeDg1dmtrMGdrbw=='
+```
+(Or grab `h2 a` hrefs via console and decode each in a loop.) Then curl the decoded article URL directly with a realistic User-Agent and pipe through the extraction script — news sites (BBC, Guardian, CNN) serve full text fine to curl once you have the real URL instead of guessing slugs. Verified July 2026: this path got 10 usable results when Google, DDG-HTML, and Bing-curl all failed.
+
 ### 3. Source Hierarchy for Different Topics
 
 | Topic Type | Best Sources | Notes |

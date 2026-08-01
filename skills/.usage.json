@@ -537,13 +537,13 @@
     "created_at": "2026-07-11T22:15:36.378857+00:00",
     "created_by": null,
     "last_patched_at": null,
-    "last_used_at": "2026-07-27T17:46:21.083462+00:00",
-    "last_viewed_at": "2026-07-27T17:46:21.077444+00:00",
+    "last_used_at": "2026-08-01T20:39:29.576878+00:00",
+    "last_viewed_at": "2026-08-01T20:39:29.571506+00:00",
     "patch_count": 0,
     "pinned": false,
     "state": "active",
-    "use_count": 29,
-    "view_count": 29
+    "use_count": 31,
+    "view_count": 31
   },
   "hermes-agent-skill-authoring": {
     "archived_at": null,
@@ -836,13 +836,13 @@
     "created_at": "2026-07-13T17:45:52.691597+00:00",
     "created_by": null,
     "last_patched_at": "2026-07-27T22:06:44.903748+00:00",
-    "last_used_at": "2026-07-27T22:21:28.310103+00:00",
-    "last_viewed_at": "2026-07-27T22:21:28.304589+00:00",
+    "last_used_at": "2026-08-01T21:00:23.231715+00:00",
+    "last_viewed_at": "2026-08-01T21:00:23.216822+00:00",
     "patch_count": 44,
     "pinned": false,
     "state": "active",
-    "use_count": 174,
-    "view_count": 174
+    "use_count": 175,
+    "view_count": 175
   },
   "medical-diagrams": {
     "archived_at": null,
@@ -913,14 +913,14 @@
     "archived_at": null,
     "created_at": "2026-07-28T11:28:44.898505+00:00",
     "created_by": "agent",
-    "last_patched_at": "2026-07-31T14:09:19.015239+00:00",
-    "last_used_at": "2026-07-31T14:08:45.680297+00:00",
-    "last_viewed_at": "2026-07-31T14:08:45.673609+00:00",
-    "patch_count": 3,
+    "last_patched_at": "2026-08-01T17:18:07.062302+00:00",
+    "last_used_at": "2026-08-01T17:17:17.009445+00:00",
+    "last_viewed_at": "2026-08-01T17:17:17.003214+00:00",
+    "patch_count": 7,
     "pinned": false,
     "state": "active",
-    "use_count": 2,
-    "view_count": 2
+    "use_count": 3,
+    "view_count": 3
   },
   "node-inspect-debugger": {
     "archived_at": null,
@@ -1312,6 +1312,19 @@
     "use_count": 4,
     "view_count": 4
   },
+  "steam-bigpicture-fullscreen-niri": {
+    "archived_at": null,
+    "created_at": "2026-08-01T17:40:24.259436+00:00",
+    "created_by": null,
+    "last_patched_at": "2026-08-01T17:45:28.504401+00:00",
+    "last_used_at": "2026-08-01T17:40:38.573279+00:00",
+    "last_viewed_at": "2026-08-01T17:40:38.566267+00:00",
+    "patch_count": 5,
+    "pinned": false,
+    "state": "active",
+    "use_count": 1,
+    "view_count": 1
+  },
   "system-admin/linux-cli-toolbox": {
     "archived_at": null,
     "created_at": "2026-07-13T17:42:55.352763+00:00",
@@ -1446,14 +1459,14 @@
     "archived_at": null,
     "created_at": "2026-07-13T10:53:48.933507+00:00",
     "created_by": "agent",
-    "last_patched_at": "2026-07-27T19:51:00.197683+00:00",
-    "last_used_at": "2026-07-27T21:54:49.962290+00:00",
-    "last_viewed_at": "2026-07-27T21:54:49.956619+00:00",
-    "patch_count": 20,
+    "last_patched_at": "2026-08-01T21:05:16.806817+00:00",
+    "last_used_at": "2026-08-01T21:05:09.386760+00:00",
+    "last_viewed_at": "2026-08-01T21:05:09.380398+00:00",
+    "patch_count": 21,
     "pinned": false,
     "state": "active",
-    "use_count": 27,
-    "view_count": 27
+    "use_count": 29,
+    "view_count": 29
   },
   "weights-and-biases": {
     "archived_at": null,
