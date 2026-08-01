@@ -13,3 +13,5 @@ User tests on iPad via Discord. Serve HTML via HTTP on port 8080 (UFW open). Bun
 § User enjoys storytelling & character voice memos (spooky stories, CSE characters). Speech pattern feedback: don't overcorrect with rigid rules — "tone down strictness, every now and then it's fine." Balance > rigidity.
 §
 User preference: after 2 consecutive failed approaches on a task, stop and report with what was tried and what's needed — do not silently try more. Proton: GitHub releases have no binary assets (source only); DepotDownloader needs Steam auth for Proton depots.
+§
+gh CLI token lapses periodically; git-credentials store has working PAT. Recover: awk -F'[/:@]' '{print $5}' ~/.git-credentials | gh auth login --with-token
