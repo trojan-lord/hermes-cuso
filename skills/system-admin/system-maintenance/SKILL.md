@@ -80,6 +80,10 @@ du -sh ~/.local/share/* 2>/dev/null | sort -rh | head -15
 du -sh ~/.cache/* 2>/dev/null | sort -rh | head -10
 ```
 
+See `references/steam-local-disk-usage.md` for this machine's measured `.local`/Steam
+breakdown (Steam = 114G of 120G; Dota 2 beta = 73G whale; shadercache 7.2G regenerable;
+compatdata 17G) and the safe cleanup targets in risk order.
+
 ### Step 2: Present Plan
 
 Show a table with three columns: **What**, **Size**, **Risk**.
@@ -447,6 +451,7 @@ for d in <deleted-list>; do [ -e "$d" ] && echo "✗ STILL EXISTS" || echo "✓ 
 - **Hermes main config (`~/.hermes/config.yaml`) cannot be patched by the agent.** The `patch` tool blocks it. Use `sed -i` via terminal instead.
 - **hermes-cuso/ and .hermes-backup/ may have duplicate configs.** Check and update ALL of them, not just the main one.
 - **Stale `.pid` files in project dirs** indicate dead servers. Safe to delete.
+- **`find ~/ -maxdepth 1 -type d` lists the home dir ITSELF** (basename, e.g. `h2` on this machine) — a "phantom" dir that appears in directory listings but can't be `ls`/`stat`-ed (it's the scan root, not a real subdir). Don't chase it or treat it as an artifact; use `-mindepth 1` or filter the basename out when auditing home root. Wasted a full chase 2026-08 before realizing it was the home dir itself.
 - **Accidental `npm install` from `~/`** creates `node_modules/`, `package.json`, `package-lock.json` at the home level. Delete all three.
 - **Large Downloads items** (FitGirl repacks, movie files) are often forgotten disk hogs. Offer to delete as part of cleanup.
 
@@ -508,6 +513,7 @@ mv ~/manuscript-v1.docx ~/Documents/manuscripts/<project>/
 - Project directories CAN be moved if you first find and update all config/script references. See "Workflow: Home Directory Reorganization" for the safe procedure. The old rule of "never move project dirs" was overly cautious — what matters is finding all references first.
 - Delete junk files (empty `nul` files, failed exports) rather than moving them.
 - After reorganizing, update memory with the new locations so future sessions know where things are.
+- **Delegated subagents write outputs to their OWN CWD (= home root), not your task folder.** When dispatching `delegate_task` for research or file-generating work, pass the output dir explicitly in each task's context: "write all outputs to ~/<task-name>/ — never home root." Otherwise fact sheets, JSON dumps, and PDFs land loose in `~/` (happened 2026-08: 36 TTS research files dumped in home root by parallel research agents; swept into ~/tts-model-research/). Subagents have no memory of your placement conventions — the folder path must be in their brief.
 
 ---
 

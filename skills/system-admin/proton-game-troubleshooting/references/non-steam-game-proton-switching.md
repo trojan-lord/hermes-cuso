@@ -25,8 +25,7 @@ PYEOF
 The **unsigned** appid is the one used for:
 - compatdata directory name: `~/.local/share/Steam/steamapps/compatdata/<unsigned_appid>/`
 - CompatToolMapping key in config.vdf
-- `steam://rungameid/<unsigned_appid>` URL
-- `steam -applaunch <unsigned_appid>` CLI flag
+- GAMEID env for umu: `GAMEID=<unsigned_appid> umu-run "<exe>"` (NOT the rungameid URL — see "Launching" below, it crashes Steam)
 
 ## Changing Proton Version for a Non-Steam Game
 
@@ -57,17 +56,23 @@ with open(os.path.expanduser("~/.local/share/Steam/config/config.vdf"), 'w') as 
 
 ## Launching a Non-Steam Game
 
-Two methods:
+**`steam://rungameid/<unsigned_appid>` CRASHES Steam for non-Steam shortcuts** (verified
+2026-08: `YAssert( Unknown GameID type )`, steamid.cpp:696, minidump in /tmp/dumps/,
+Steam restarts, nothing launches). `steam -applaunch <unsigned_appid>` has the same
+problem — both take the signed/steam-native appid space and assert on shortcut ids.
+
+Faithful headless repro (what Steam actually runs for a shortcut):
 
 ```bash
-# Method 1: URI scheme (works with running Steam)
-xdg-open steam://rungameid/<unsigned_appid>
-
-# Method 2: Direct applaunch
-steam -applaunch <unsigned_appid>
+GAMEID=<unsigned_appid> umu-run "/path/to/Game.exe"
 ```
 
-Method 1 is preferred when Steam is already running. Method 2 starts a new Steam instance.
+- Runs protonfixes with that GAMEID; creates a per-game prefix at
+  `~/Games/umu/<gameid>/` (GAMEID unset → shared `~/Games/umu/umu-default/`).
+- Steam's internal 64-bit gameID for shortcuts = `(unsigned_appid << 32) | 0x02000000`
+  (matches the `Adding process ... for gameID` hex in console-linux.txt).
+- To launch through the REAL Steam UI instead: use the in-library Play button or ask the
+  user to click it — there is no reliable CLI/URL for shortcut appids.
 
 ## Monitoring Game Launch
 

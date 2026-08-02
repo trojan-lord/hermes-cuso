@@ -18,6 +18,20 @@ description: "Proton game debugging: cracked vs legit triage."
 
 **Non-Steam Game Added to Steam**: Added via "Add a Non-Steam Game". Gets negative App ID internally. Actual compatdata ID differs - find in shortcuts.vdf. Compatdata path: ~/.steam/steam/steamapps/compatdata/internal_id/
 
+**VERIFY WHERE THE PREFIX ACTUALLY LIVES (2026-08 finding, this machine)**: per-app
+`compatdata/*/` prefixes are NOT guaranteed — an Aug 1 audit found all 27 dirs as empty
+stubs (just `config_info`), but RE-AUDIT Aug 2 after real Steam shortcut launches found
+full prefixes (`pfx/drive_c`, ~815M each, 17G total): per-app prefixes get initialized
+on first REAL Steam launch, so a stale "stubs" conclusion goes wrong. Always re-check
+`find compatdata -maxdepth 2 -name drive_c` + dir mtimes before claiming anything.
+Non-Steam game CONFIGS/saves live in the SHARED umu prefix `~/Games/umu/umu-default/`
+(GAMEID-less runs); `GAMEID=<appid>` runs create per-game prefixes at
+`~/Games/umu/<gameid>/`, and the Steam wrapper ALSO initializes compatdata/<id>. NEVER
+"fix prefix corruption" by deleting compatdata/<id> here — the real game data survives
+in ~/Games/umu/, confusing the diagnosis. Also: xdg default for .exe is `protontricks-launch`,
+which REQUIRES a Steam appid — file-manager double-click is NOT the launch path on
+this machine; games launch from Steam shortcuts.
+
 **Cracked/Repacked Game**: Contains crack DLLs (OrangeEmu64.dll for CODEX). Check with: strings exe | grep -i ".dll"
 
 ## Cracked Game Compatibility
@@ -77,9 +91,94 @@ See `references/non-steam-game-proton-switching.md` for the complete workflow:
 - Extracting a non-Steam game's internal appid from shortcuts.vdf
 - Signed-to-unsigned appid conversion
 - Changing Proton versions programmatically via config.vdf's CompatToolMapping
-- Launching via steam://rungameid/ and -applaunch
+- Launching shortcuts headlessly via `GAMEID=<unsigned_appid> umu-run` (the
+  steam://rungameid URL CRASHES Steam — see "Reproducing a Steam shortcut launch" below)
 - Monitoring launch in Steam logs
 - Process detection limitations when testing from a headless terminal
+
+## Games Open Windowed on Wayland/niri (fullscreen request lost in XWayland)
+
+Symptom: game launches from the Steam library but appears as a tiled window (~935x1068),
+never covering the screen — while the game's own settings say FullscreenMode=1. Same root
+cause as Steam BPM: the X11 fullscreen request crosses XWayland and the compositor honors
+it INCONSISTENTLY (race at window map time — same launch command can fullscreen once and
+window next). Not a game setting, not a Steam setting.
+
+### Investigate how the game ACTUALLY launches (don't guess)
+- Non-Steam shortcuts = BINARY VDF: `~/.local/share/Steam/userdata/<uid>/config/shortcuts.vdf`.
+  Decode with Python `vdf.binary_loads` (fields: AppName, exe, appid = negative signed 32-bit).
+- Proton pinned per shortcut: `~/.local/share/Steam/config/config.vdf` →
+  InstallConfigStore.Software.Valve.Steam.CompatToolMapping[appid].name.
+- Launch options: `userdata/<uid>/config/localconfig.vdf` → ...apps[appid].LaunchOptions.
+- Games' own display configs live in the wine prefix
+  (`~/Games/umu/umu-default/drive_c/users/<user>/AppData/Local/<Game>/...`):
+  check FullscreenMode + ResolutionSizeX/Y. Watch for resolution mismatch — e.g.
+  Everholm/REANIMAL set to 3840x2160 on a 1920x1080 output: even an honored fullscreen
+  request can't match the screen.
+- Wine driver: prefix `user.reg` `[Software\\\\Wine\\\\Drivers]` — no virtual desktop /
+  wayland driver override → default X11 driver (XWayland path confirmed).
+- UE games can SELF-RESOLVE: splash window born fullscreen, real game window appears
+  windowed (935x1068) for a few seconds, then goes fullscreen on its own — watch
+  ≥10-15s before calling it windowed (observed on It Takes Two, 2026-08).
+
+### Fix: per-shortcut Launch Options
+`gamescope -f -e -- %command%`
+- gamescope is a native Wayland client → the compositor fullscreens it RELIABLY
+  (mechanism verified: gamescope BPM test went true fullscreen on niri), unlike the
+  XWayland race. Inside gamescope the game is always fullscreen regardless of its
+  internal resolution; add `-F fsr` to upscale (e.g. 4K-native games on a 1080p panel).
+- Apply per shortcut: Steam UI (Properties → Launch Options) or edit config.vdf while
+  Steam is closed. ASK the user which — this user green-lights before any change.
+- NOTE: this was proposed + mechanism-verified, NOT yet applied on this machine.
+
+### umu-run testing pitfall (prefix churn — happened 2026-08)
+NEVER test non-Steam games with bare `umu-run <exe>`: it defaults to a different Proton
+(e.g. UMU-Proton-10.0-4) and "upgrades"/churns the prefix that was built with another
+build (GE-Proton11-3) — rewrites version/tracked_files/pfx.lock, logs "Prefix has an
+invalid version?!". Always pin the build:
+`PROTONPATH=~/.local/share/Steam/compatibilitytools.d/<build> umu-run <exe>`.
+Also: first umu-run of a prefix runs pv-verify (30-60s, ~100% CPU) before any game
+window appears — not a hang. A window that flashes ~2s then dies is a SEPARATE crash
+(e.g. Blur, old DX9 under GE-Proton11), not the fullscreen bug.
+
+### Test through the USER'S real launch path (user will ask "did you run it through Steam?")
+A bare `umu-run <exe>` is NOT the same as launching from a Steam shortcut (missing
+overlay, per-game protonfixes, Steam env). Before reporting a diagnosis from a direct
+test, either (a) reproduce the Steam launch faithfully with
+`GAMEID=<unsigned_appid> umu-run "<exe>"` (below), or (b) prove prefix equivalence:
+compatdata stubs + game-config timestamps inside the shared prefix. This user WILL call
+it out — 2026-08 session, Blur diagnosis via umu-run was challenged exactly this way.
+
+### Reproducing a Steam shortcut launch without Steam (VALIDATED 2026-08)
+`steam://rungameid/<unsigned_appid>` CRASHES the Steam client for non-Steam shortcuts —
+verified crash dump: `YAssert( Unknown GameID type )` (steamid.cpp:696), minidump in
+/tmp/dumps/, Steam restarts, nothing launches. The URL scheme and `steam -applaunch`
+both assert on shortcut ids. The faithful headless repro is the umu GAMEID form:
+
+```bash
+GAMEID=<unsigned_appid> umu-run "/path/to/Game.exe"
+```
+
+This is what Steam actually does for a shortcut: protonfixes run with that GAMEID and a
+PER-GAME prefix is created at `~/Games/umu/<gameid>/` (vs shared `~/Games/umu/umu-default/`
+when GAMEID is unset). Validated: It Takes Two launched via this and went fullscreen,
+stable. Steam's internal 64-bit gameID for shortcuts decodes as
+`(unsigned_appid << 32) | 0x02000000` (see "Adding process ... for gameID" in console-linux.txt).
+
+### Silent crash before any window (not a fullscreen issue)
+A game that spawns processes but NEVER creates a window, then exits ~40s later, is
+crashing pre-window. Evidence to gather:
+- `~/.local/share/Steam/logs/console-linux.txt`: `Adding process ... for gameID` lines,
+  then `Removing process ... for gameID` a minute later = game died; `Game Recording -
+  game stopped` confirms it.
+- No config dir written in the prefix (no `AppData/LocalLow/<Game>`, no
+  GameUserSettings.ini) = game never got far enough to save settings.
+- Steam client asserts: `/tmp/dumps/assert_*.dmp` + `h2_log.txt`; read the reason with
+  `strings <dmp> | grep -i assert`.
+- Isolate proton-version crashes: same game via Steam (pinned GE-Proton) crashing vs
+  `GAMEID=... umu-run` (default UMU-Proton) running fine = switch the shortcut's
+  CompatToolMapping to the working build. (2026-08: It Takes Two crashed pre-window
+  under GE-Proton11-3 via Steam; ran fullscreen under UMU-Proton-10.0-4 via umu.)
 
 ## Cleanup Protocol
 
