@@ -404,7 +404,7 @@ This reliably returns video IDs, titles, channels, and durations. Use it when th
 - **Google will block you** — don't waste time retrying; go straight to DuckDuckGo HTML
 - **Cloudflare-protected fandom wikis** — most fandom.com wikis are behind Cloudflare challenges; find the same info on TV Tropes or Wikipedia instead. The Fandom API (`/api.php?action=parse&page=TOPIC&format=json`) also fails behind Cloudflare. **Fallback: Wayback Machine** — `web.archive.org/web/TIMESTAMP/URL` often has cached snapshots of wiki pages that bypass Cloudflare entirely. Use the browser to navigate: `https://web.archive.org/web/2023/https://harrypotter.fandom.com/wiki/TOPIC`. The Wayback Machine sometimes renders the full page content including JavaScript, giving you the complete article. For API access, try the raw archived version: `https://web.archive.org/web/TIMESTAMPid_/https://harrypotter.fandom.com/api.php?action=parse&page=TOPIC&format=json`. Check `web.archive.org/web/` homepage for available snapshots first.
 - **AI-generated content on character sites** — sites like shapes.inc/fandom generate realistic but fabricated quotes; always verify against transcripts or TV Tropes
-- **Reddit JSON API may return empty** — the old.reddit.com JSON endpoint sometimes fails; use DuckDuckGo to find Reddit threads instead. **Also try**: old.reddit.com HTML search (`curl -sL "https://old.reddit.com/r/SUBREDDIT/search?q=QUERY&restrict_sr=on&sort=relevance&t=all"`) piped through the extraction script — this often works even when the JSON API and new Reddit are both blocked.
+- **Reddit JSON API may return empty** — the old.reddit.com JSON endpoint sometimes fails; use DuckDuckGo to find Reddit threads instead. **Also try**: old.reddit.com HTML search (`curl -sL "https://old.reddit.com/r/SUBREDDIT/search?q=QUERY&restrict_sr=on&sort=relevance&t=all"`) piped through the extraction script — this often works even when the JSON API and new Reddit are both blocked. **Newest fallback (verified 2026-08)**: when even old.reddit serves a JS shell, pullpush.io returns clean JSON — `curl -sL 'https://api.pullpush.io/reddit/search/submission/?q=QUERY&subreddit=NAME&size=15'`.
 - **Later episodes may lack transcripts** — SpringfieldSpringfield often only has first few episodes; plan around this
 - **Curl User-Agent matters** — many sites require a realistic browser User-Agent or return empty/blocked pages
 - **"Everything is blocked" scenario** — When Google, DuckDuckGo, Fandom, TV Tropes, AND Reddit are ALL blocked (aggressive bot detection on the session's IP), fall back to: (1) Wikipedia HTML + API (usually accessible), (2) known entertainment review sites (THR, Variety, Animation Magazine — try status codes first), (3) browser_navigate for JS-rendered pages, (4) follow reference links inside Wikipedia articles (they contain verified URLs to interviews and reviews). Check reference URLs in batch: `curl -sL -o /dev/null -w '%{http_code}' 'URL'` for each before attempting full fetch.
@@ -523,6 +523,23 @@ for s in data.get('siblings', []):
 "
 ```
 
+**Primary-source verification workflow** (proven Aug 2026 on a CosyVoice2 fact-sheet deep-dive — every claim sourced, nothing fabricated):
+
+1. **Repo first**: `curl https://api.github.com/repos/OWNER/REPO` → license key, stars, forks, `pushed_at` (maintenance status), and the CURRENT `full_name` — orgs transfer repos and **issue-search 422s on old names** (search with the current name). Raw README via `raw.githubusercontent.com/OWNER/REPO/main/README.md` — official eval/benchmark tables live here.
+2. **Paper ID from the README's bibtex/citations, never from memory or user guesses.** Remembered IDs are often wrong (a user-supplied arXiv ID turned out to be an unrelated vision paper). README citations are authoritative.
+3. **arXiv**: export API (`export.arxiv.org/api/query?id_list=ID`) for title/abstract/dates. **The HTML version (`arxiv.org/html/ID`) can be truncated to ToC + abstract** — for full text, download the PDF and `pdftotext -layout` it.
+4. **HF**: `/api/models/ORG/MODEL` (license tags, downloads, lastModified) + `/api/models/ORG/MODEL/tree/main?recursive=true` (per-file sizes). **Derive param counts from fp32 weight files: size_bytes ÷ 4 ≈ params** (fp32 = 4 B/param). Model card raw: `.../raw/main/README.md`.
+5. **Real-world reports**: GitHub issue search `repo:OWNER/REPO OOM OR VRAM OR CPU` — goldmine for VRAM/speed/user-experience data that model cards omit. Open PRs reveal community perf work (e.g., GGUF/llama.cpp CPU backends).
+6. **License triple-check for commercial use**: GitHub LICENSE file + GitHub API license key + HF card frontmatter (`license:` field). Code license ≠ weights license — F5-TTS is MIT code but CC-BY-NC weights; XTTS-v2 is Coqui Public Model License (non-commercial).
+7. **Competitors**: verify their claims against THEIR OWN repos/READMEs (e.g., F5-TTS README has an RTF benchmark table), not blogs or third-party summaries.
+8. **Unverifiable claims**: mark `[unverified]` explicitly (e.g., 404'd demo pages) — never fill gaps with plausible numbers.
+9. **Variant existence check** ("is there a Large / 1.6B?"): query BOTH `huggingface.co/api/models?search=NAME-Large&limit=50` AND `api.github.com/search/repositories?q=NAME-Large` — zero hits on both is definitive "no such variant exists" (verified on F5-TTS: no 1.6B/Large despite rumors; only Base checkpoints released).
+10. **Code-level verification for runtime behavior**: READMEs don't state dtype thresholds, chunk sizes, or streaming mode — grep the raw source (`raw.githubusercontent.com/OWNER/REPO/main/<path>` piped to grep) for `dtype|fp16|float16|chunk|cross_fade|streaming`. This answers "can it run on a 4 GB GPU?" (F5-TTS `utils_infer.py` loads fp16 iff CUDA CC≥7, fp32 otherwise) and "does it need silence hacks?" (sentence chunking + 0.15 s cross-fade are built in) from code, not claims.
+11. **Setup complexity from PyPI JSON**: `pypi.org/pypi/PKG/json` → `.info.requires_dist` is the real dependency list — answers espeak-ng/ffmpeg/conda questions without installing anything.
+12. **Release cadence** = maintenance signal: `api.github.com/repos/OWNER/REPO/releases` — monthly tags up to the current month beats any "is the repo dead?" debate.
+
+See `references/f5-tts-facts-2026.md` (F5-TTS verified fact sheet) and `references/cosyvoice2-factsheet-2026.md` (TTS-family worked examples, sources, verdicts).
+
 ### Comparison Report Format
 
 For technology comparison output, use this structure:
@@ -539,6 +556,7 @@ For technology comparison output, use this structure:
 - **Pricing pages are often JS-rendered** — raw curl often returns empty/JS shells; use browser tools or check for SSR/API endpoints
 - **Model VRAM claims vary by source** — always check the actual model card/HuggingFace page rather than blog posts; VRAM depends on precision (FP16/INT8), batch size, and CUDA overhead
 - **"Best" is context-dependent** — always ask or infer: accuracy vs. speed vs. cost vs. VRAM vs. language coverage tradeoffs change the ranking
+- **Model names collide with brands in web search** — `"F5-TTS"` on Bing surfaced F5 Networks (load balancers) noise; search engines split on prefixes (`F5` ≠ `F5-TTS`). For ML-model questions, skip web search entirely and go straight to the GitHub/HF APIs above.
 
 ## Educational / Competitive Exam Data Research
 

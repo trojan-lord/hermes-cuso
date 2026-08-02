@@ -20,28 +20,25 @@ description: Steam BPM windowed on niri? Watcher forces fullscreen.
 - niri IPC JSON does NOT expose a fullscreen flag per window; detect it by comparing
   `layout.window_size` to the output's `logical` size.
 
-## FIX (primary): watcher daemon — `~/.local/bin/steam-bpm-fix.py`
+## FIX (primary): watcher daemon — `~/steam-bpm-fix/steam-bpm-fix.py`
 See skill file `scripts/steam-bpm-fix.py` (or reconstruct): poll `niri msg --json windows`
 every ~0.7s; when a steam window titled "Steam Big Picture Mode" is not fullscreen,
 `focus-window --id N` + `fullscreen-window`; when it disappears (user exited BPM),
 un-fullscreen the desktop Steam window if we set it. Acts only on transitions.
 
+Lives in `~/steam-bpm-fix/` (user rule: keep task artifacts in ONE folder, never
+scattered in home/.local). README.md in the folder explains it.
+
 Autostart: add to `~/.config/niri/cfg/autostart.kdl`:
 ```
-spawn-sh-at-startup "python3 /home/h2/.local/bin/steam-bpm-fix.py &" // Steam BPM fullscreen fix
+spawn-sh-at-startup "python3 /home/h2/steam-bpm-fix/steam-bpm-fix.py &" // Steam BPM fullscreen fix
 ```
 
-## FIX (alternative, only if desktop-mode-fullscreen is acceptable): gamescope wrapper
+## FIX (alternative, REJECTED on this machine — do not rebuild): gamescope wrapper
 `gamescope -f -e -- steam -gamepadui` — makes EVERYTHING fullscreen including Steam
-desktop mode. This confused the user ("desktop mode became fullscreen" = unwanted).
-Use only if the user is OK with both modes fullscreen. Details:
-- Launcher `~/.local/bin/steam-bigpicture` must `steam -shutdown` first (wait up to 30s
-  for exit), else `steam -gamepadui` just signals the existing instance and gamescope
-  exits immediately.
-- Desktop entry pointing at it; validate with `desktop-file-validate`.
-- Verify: `niri msg action spawn -- ~/.local/bin/steam-bigpicture`, sleep 15, then
-  `niri msg windows` — expect Title "Steam Big Picture Mode", App ID "gamescope",
-  Window size 1920x1080, Is floating no, offset 0x0.
+desktop mode. This confused the user ("desktop mode became fullscreen" = unwanted)
+and the launcher + desktop entry were DELETED 2026-08-02. Revisit only if the user
+ever explicitly wants both modes fullscreen.
 
 ## Watcher pitfalls (learned the hard way, niri 26.04)
 - **`niri msg --json outputs`**: returns a DICT keyed by output name; `current_mode` is

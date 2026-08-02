@@ -926,6 +926,8 @@ Current production: clip_07_trimmed_precise = 7.7s (~250 frames) + output cap 50
 
 #### Alternative Models
 
+**XTTS-v2** (Coqui, ~467M params): The canonical open-source zero-shot voice cloning engine — best-in-class clone fidelity from a **6 s reference**, 17 languages, cross-language cloning, native streaming (<200 ms first chunk). Fits the 4 GB GTX 1650 Ti in fp16 (~2–3 GB VRAM). **⚠️ Weights are CPML-licensed = NON-COMMERCIAL ONLY** (code is MPL-2.0) — disqualifies it for any revenue-generating character voice. Coqui the company shut down Jan 2024; maintained fork `idiap/coqui-ai-TTS` is active (2026); `pip install coqui-tts` still works (0.27.5). CPU-only is slow (~0.2–0.5× RT vs Qwen's ~1.4×). Full verified fact sheet, source URLs, and the reusable model-verification method: `references/xtts-v2-fact-sheet.md`.
+
 **Kokoro** (Helium, 82M params): Supports multi-reference ICL natively (no concatenation needed), but much smaller than Qwen (1.7B = 21x larger). Voice cloning quality scales with model size, so Kokoro's cloning is noticeably worse. Not recommended when Qwen is available.
 
 **Why Demucs-cleaned audio helps ICL more than raw audio:** Clean vocal separation removes background noise that adds "junk" tokens to the reference. With raw audio, the model sees the character's voice mixed with music, SFX, and other speakers -- each of those noise tokens consumes context budget without helping voice matching. Clean audio means every frame of reference carries useful voice information, so shorter references can achieve the same or better quality.
