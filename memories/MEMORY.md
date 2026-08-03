@@ -6,16 +6,18 @@ GitHub: trojan-lord. gh auth active. Push only existing repos; ask first. SOUL.m
 §
 TTS: marshall provider = Qwen Talker 1.7B, ICL one-shot cloning (clip_07_trimmed_precise); script ~/Projects/marshall-voice/tts-provider/tts-provider.sh. MUST skill_view('marshall-speech-patterns') before TTS. Curl Discord API (never MEDIA: tag); token DISCORD_BOT_TOKEN; voice channel 1526410959772717106.
 §
-Gateway restart: write cmd to script, tuistory launch. Load skills, stay in character, verify from source first.
+Gateway restart: script via tuistory. Load skills, stay in character, verify from source first.
 §
 User tests on iPad via Discord. Serve HTML via HTTP on port 8080 (UFW open). Bundle p5.js inline. Cloudflare tunnel blocked. Ngrok needs auth.
 §
 § User enjoys storytelling & character voice memos (spooky stories, CSE characters). Speech pattern feedback: don't overcorrect with rigid rules — "tone down strictness, every now and then it's fine." Balance > rigidity.
 §
-User preference: after 2 consecutive failed approaches on a task, stop and report with what was tried and what's needed — do not silently try more. Proton: GitHub releases have no binary assets (source only); DepotDownloader needs Steam auth for Proton depots.
+User preference: after 2 consecutive failed approaches on a task, stop and report what was tried and what's needed — don't silently try more.
 §
 gh CLI token lapses periodically; git-credentials store has working PAT. Recover: awk -F'[/:@]' '{print $5}' ~/.git-credentials | gh auth login --with-token
 §
-Kanban: user wants it used wherever it helps — multi-step/long-running/dependency jobs (explicit, Aug 2026). Board: ~/.hermes/kanban.db, board 'default', only 'default' profile exists so workers spawn as default-profile processes. CLI: hermes kanban create/list. Flag when a job qualifies instead of doing it inline.
+Kanban: use wherever it helps (multi-step/long-running/dependency jobs; explicit Aug 2026). Board ~/.hermes/kanban.db 'default'; only 'default' profile exists — workers spawn as default-profile. Flag qualifying jobs instead of inline.
 §
-TTS model comparisons: same-text head-to-head test before claiming better than Qwen ICL cloning (user caught extrapolated claim).
+TTS comparisons: same-text head-to-head before claiming better than Qwen ICL (user caught extrapolation).
+§
+Mel: ESP32 self-feeding radio at ~/mel/ (blueprint docs/architecture.md). Taste model + SD library + Jamendo foraging, audio out via BT A2DP on the classic chip. Continue from repo.

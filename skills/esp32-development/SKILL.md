@@ -148,6 +148,13 @@ uv pip install --python /tmp/ss-venv/bin/python esptool playwright pyserial
 ### 🏆 Value pick: Quartz S3-N16R8 (₹684)
 36 GPIO, 16MB flash, 8MB PSRAM, dual USB-C, native USB OTG. More GPIO, more memory, and cheaper than the XIAO S3.
 
+### 🔴 Bluetooth: Classic vs BLE — the A2DP gotcha
+- **ESP32 classic (D0WD-V3 / WROOM-32): has Bluetooth Classic AND BLE.** Classic enables A2DP **source** — streaming stereo audio to BT headphones/earbuds. The only mainstream ESP32 that can.
+- **ESP32-S3 / C3 / C6: BLE-only.** No Bluetooth Classic → no A2DP source → cannot play audio to BT earbuds. (LE Audio isn't supported on the S3, and most earbuds don't do LE Audio yet anyway.)
+- Rule: any project that must play audio to Bluetooth headphones uses the **classic ESP32** (or an external I2S→BT transmitter module).
+- Proven audio stack: `pschatzmann/ESP32-A2DP` (source mode) + `libhelix-mp3` (software decode) → PCM → A2DP. MP3 decode ≈ 60–80% of one LX6 core at 240MHz — pin decode to core 0, SD/DMA traffic to core 1.
+- Example build: `references/mel-taste-radio.md` — Mel, a self-feeding AI radio (online taste model + SD library + Jamendo foraging + A2DP out).
+
 ### XIAO S3 GPIO details
 - **11 usable GPIO:** GPIO0–GPIO10 (all have ADC)
 - **No hardware DAC** — zero analog output. Use PWM for analog-like output
