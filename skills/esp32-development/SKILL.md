@@ -153,7 +153,7 @@ uv pip install --python /tmp/ss-venv/bin/python esptool playwright pyserial
 - **ESP32-S3 / C3 / C6: BLE-only.** No Bluetooth Classic → no A2DP source → cannot play audio to BT earbuds. (LE Audio isn't supported on the S3, and most earbuds don't do LE Audio yet anyway.)
 - Rule: any project that must play audio to Bluetooth headphones uses the **classic ESP32** (or an external I2S→BT transmitter module).
 - Proven audio stack: `pschatzmann/ESP32-A2DP` (source mode) + `libhelix-mp3` (software decode) → PCM → A2DP. MP3 decode ≈ 60–80% of one LX6 core at 240MHz — pin decode to core 0, SD/DMA traffic to core 1.
-- Example build: `references/mel-taste-radio.md` — Mel, a self-feeding AI radio (online taste model + SD library + Jamendo foraging + A2DP out).
+- Example build: `references/mel-taste-radio.md` — Mel, a self-feeding AI radio (continuous-spectrum bandit taste model + SD library + Jamendo foraging + A2DP out). Embedding layer / audio-AI model selection (CLAP vs MERT vs Shazam fingerprints, off-device pipeline): `references/audio-embedding-player.md`.
 
 ### XIAO S3 GPIO details
 - **11 usable GPIO:** GPIO0–GPIO10 (all have ADC)
