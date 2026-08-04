@@ -4,10 +4,8 @@ Tech: Linux, gaming, IoT (ESP32: classic WROOM-32 DevKit, Quartz S3 N16R8, XIAO 
 §
 NEW WORK: always mkdir -p ~/<task-name>/ and do everything inside it; never scatter files in home root. Pass the task folder path to delegated subagents so their outputs land there (user explicit, Aug 2026). Examples: ~/steam-bpm-fix/, ~/tts-model-research/
 §
-§ Interested in AI character embodiment — building SOULs that make agents feel real. Stores SOULs in ~/SOULS/[Name].md. Values organic, non-robotic feel. SOUL improvement philosophy: interaction-created patterns are irreplaceable; research fills gaps but can't create depth.
+§ Interested in AI character embodiment — SOULs in ~/SOULS/[Name].md. Interaction patterns > research for depth.
 §
 GitHub: new project repos expected PUBLIC by default — confirm visibility at creation (mel was made private, user wanted public).
 §
 When things break or go weird, user wants a clear, honest, playful explanation of what happened and why ("My lord! What happened?") — full story, honest caveats, no hand-waving.
-§
-When offered a menu of feature options, user tends to say "add all of them" — likes ambitious, elegant additions and broad coverage.
