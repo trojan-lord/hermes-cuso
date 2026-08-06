@@ -59,6 +59,33 @@ tuistory launch "sudo reboot" -s reboot --background --no-wait
 tuistory launch "hermes update" -s hermes-update --background --no-wait
 ```
 
+### Verify the update actually landed (checklist)
+
+Don't trust the notification alone — confirm from the source:
+
+1. `hermes version` → shows `vX.Y.Z (date)` + `upstream <sha>`; the date should
+   be today (or the release day).
+2. `cd ~/.hermes/hermes-agent && git log -1 --format='HEAD %h %ci %s'` → HEAD
+   commit time should match the update moment.
+3. `tail ~/.hermes/gateway-starts.log` → last timestamp ≈ right after the update.
+4. `grep "post-update notification" ~/.hermes/logs/gateway.log | tail` →
+   `Sent post-update notification to discord:... (exit=0)` = clean.
+5. `git fetch -q` then `git log --oneline HEAD..origin/main` → empty = up to
+   date. (Fetch can hang on slow networks — give it a real timeout.)
+6. Post-restart slash-sync line usually reads `same slash-command fingerprint
+   already synced` — desired state, means the command tree didn't drift.
+
+Pre-existing auxiliary warnings (openrouter payment error, "no Nous auth") in
+errors.log are background-summarizer noise, unrelated to the update — the main
+provider keeps working.
+
+## Discord Slash Command Parity Audit
+
+When the user asks "do the /commands I see match what's actually available?" —
+full verification workflow (token → @me → live commands endpoint, registry
+extraction, fingerprint check, 100-cap math): see
+`references/discord-slash-command-audit.md`.
+
 ## Pitfalls
 
 - Gateway scans FULL command string including inner tuistory args, not just first token
