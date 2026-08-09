@@ -298,6 +298,21 @@
     "use_count": 27,
     "view_count": 27
   },
+  "document-to-action-items": {
+    "archived_at": null,
+    "created_at": "2026-08-09T14:51:07.856811+00:00",
+    "created_by": null,
+    "last_patched_at": null,
+    "last_reused_patch_generation": 0,
+    "last_used_at": null,
+    "last_viewed_at": null,
+    "patch_count": 0,
+    "patch_generation": 0,
+    "pinned": false,
+    "state": "active",
+    "use_count": 0,
+    "view_count": 0
+  },
   "docx": {
     "archived_at": null,
     "created_at": "2026-07-26T04:06:03.362933+00:00",
@@ -535,6 +550,21 @@
     "state": "active",
     "use_count": 1,
     "view_count": 1
+  },
+  "grounded-citations": {
+    "archived_at": null,
+    "created_at": "2026-08-09T14:51:07.863547+00:00",
+    "created_by": null,
+    "last_patched_at": null,
+    "last_reused_patch_generation": 0,
+    "last_used_at": null,
+    "last_viewed_at": null,
+    "patch_count": 0,
+    "patch_generation": 0,
+    "pinned": false,
+    "state": "active",
+    "use_count": 0,
+    "view_count": 0
   },
   "heartmula": {
     "archived_at": null,
