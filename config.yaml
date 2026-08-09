@@ -1,4 +1,6 @@
-_config_version: 33
+model:
+  default: big-pickle
+  provider: opencode-zen
 agent:
   max_turns: 80
   personalities:
@@ -40,40 +42,99 @@ agent:
       >w<
   reasoning_effort: medium
   verbose: false
-approvals:
-  mode: 'off'
-auxiliary:
-  vision:
-    model: ''
-    provider: auto
+terminal:
+  backend: local
+  cwd: .
+  timeout: 180
+  home_mode: auto
+  container_cpu: 1
+  container_memory: 5120
+  container_disk: 51200
+  container_persistent: true
+  docker_mount_cwd_to_workspace: false
+  lifetime_seconds: 300
 browser:
   inactivity_timeout: 120
+tool_loop_guardrails:
+  warnings_enabled: true
+  hard_stop_enabled: true
+  warn_after:
+    exact_failure: 2
+    same_tool_failure: 3
+    idempotent_no_progress: 2
+  hard_stop_after:
+    exact_failure: 5
+    same_tool_failure: 8
+    idempotent_no_progress: 5
+compression:
+  enabled: true
+  threshold: 0.5
+  target_ratio: 0.2
+  protect_last_n: 20
+  protect_first_n: 3
+  codex_gpt55_autoraise: true
+  codex_app_server_auto: native
+prompt_caching:
+  cache_ttl: 15m
+auxiliary:
+  vision:
+    provider: auto
+    model: ''
+display:
+  compact: false
+  busy_input_mode: interrupt
+  bell_on_complete: false
+  show_reasoning: false
+  streaming: true
+  skin: default
+  interim_assistant_messages: true
+  background_process_notifications: all
+  busy_ack_detail: true
+  cleanup_progress: false
+  long_running_notifications: true
+  tool_progress: all
+tts:
+  provider: marshall
+  providers:
+    marshall:
+      command: /home/h2/Projects/marshall-voice/tts-provider/tts-provider.sh {input_path}
+        {output_path}
+      output_format: ogg
+      voice_compatible: true
+      max_text_length: 4000
+      type: command
+stt:
+  enabled: true
+  local:
+    model: large-v3-turbo
+  openai:
+    model: whisper-1
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2200
+  user_char_limit: 1375
+  flush_min_turns: 10
+  nudge_interval: 10
+delegation:
+  max_iterations: 50
+skills:
+  creation_nudge_interval: 15
+approvals:
+  mode: 'off'
 code_execution:
   max_tool_calls: 50
   timeout: 300
-compression:
-  codex_app_server_auto: native
-  codex_gpt55_autoraise: true
-  enabled: true
-  protect_first_n: 3
-  protect_last_n: 20
-  target_ratio: 0.2
-  threshold: 0.5
-delegation:
-  max_iterations: 50
-display:
-  background_process_notifications: all
-  bell_on_complete: false
-  busy_ack_detail: true
-  busy_input_mode: interrupt
-  cleanup_progress: false
-  compact: false
-  interim_assistant_messages: true
-  long_running_notifications: true
-  show_reasoning: false
-  skin: default
-  streaming: true
-  tool_progress: all
+streaming:
+  enabled: false
+onboarding:
+  seen:
+    busy_input_prompt: true
+updates:
+  pre_update_backup: false
+  backup_keep: 5
+  non_interactive_local_changes: stash
+_config_version: 33
 fallback_model:
   - model: deepseek-v4-flash-free
     provider: opencode-zen
@@ -84,19 +145,6 @@ fallback_model:
   - model: qwen3.5:4b
     provider: ollama
 group_sessions_per_user: true
-memory:
-  flush_min_turns: 10
-  memory_char_limit: 2200
-  memory_enabled: true
-  nudge_interval: 10
-  user_char_limit: 1375
-  user_profile_enabled: true
-model:
-  default: big-pickle
-  provider: opencode-zen
-onboarding:
-  seen:
-    busy_input_prompt: true
 platform_toolsets:
   cli:
     - hermes-cli
@@ -120,54 +168,31 @@ platform_toolsets:
     - hermes-whatsapp
   yuanbao:
     - hermes-yuanbao
-prompt_caching:
-  cache_ttl: 15m
 session_reset:
   at_hour: 4
   idle_minutes: 1440
   mode: both
-skills:
-  creation_nudge_interval: 15
-streaming:
-  enabled: false
-stt:
-  enabled: true
-  local:
-    model: large-v3-turbo
-  openai:
-    model: whisper-1
-terminal:
-  backend: local
-  container_cpu: 1
-  container_disk: 51200
-  container_memory: 5120
-  container_persistent: true
-  cwd: .
-  docker_mount_cwd_to_workspace: false
-  home_mode: auto
-  lifetime_seconds: 300
-  timeout: 180
-tool_loop_guardrails:
-  hard_stop_after:
-    exact_failure: 5
-    idempotent_no_progress: 5
-    same_tool_failure: 8
-  hard_stop_enabled: true
-  warn_after:
-    exact_failure: 2
-    idempotent_no_progress: 2
-    same_tool_failure: 3
-  warnings_enabled: true
-tts:
-  provider: marshall
-  providers:
-    marshall:
-      command: /home/h2/Projects/marshall-voice/tts-provider/tts-provider.sh {input_path} {output_path}
-      output_format: ogg
-      voice_compatible: true
-      max_text_length: 4000
-      type: command
-updates:
-  backup_keep: 5
-  non_interactive_local_changes: stash
-  pre_update_backup: false
+platforms:
+  discord:
+    enabled: true
+    home_channel:
+      platform: discord
+      chat_id: '1491816941474676910'
+      name: 'CSE / #general'
+      user_id: '395258910455365642'
+
+# ── Security ──────────────────────────────────────────────────────────
+# Secret redaction is ON by default — strings that look like API keys,
+# tokens, and passwords are masked in tool output, logs, and chat
+# responses before the model or user ever sees them. Set redact_secrets
+# to false to disable (e.g. when developing the redactor itself).
+# tirith pre-exec scanning is enabled by default when the tirith binary
+# is available. Configure via security.tirith_* keys or env vars
+# (TIRITH_ENABLED, TIRITH_BIN, TIRITH_TIMEOUT, TIRITH_FAIL_OPEN).
+#
+# security:
+#   redact_secrets: true
+#   tirith_enabled: true
+#   tirith_path: "tirith"
+#   tirith_timeout: 5
+#   tirith_fail_open: true
