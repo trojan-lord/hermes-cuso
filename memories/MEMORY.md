@@ -10,7 +10,7 @@ Gateway restart: script via tuistory. Load skills, stay in character, verify fro
 §
 User tests on iPad via Discord. Serve HTML via HTTP on port 8080 (UFW open). Bundle p5.js inline. Cloudflare tunnel blocked. Ngrok needs auth.
 §
-§ User enjoys storytelling & character voice memos (spooky stories, CSE characters). Speech pattern feedback: don't overcorrect with rigid rules — "tone down strictness, every now and then it's fine." Balance > rigidity.
+§ User enjoys storytelling & character voice memos (spooky stories, CSE characters). Speech feedback: don't overcorrect with rigid rules — 'tone down strictness, every now and then it's fine.' Drop 'buddy' openers — too repetitive. Balance > rigidity.
 §
 User preference: after 2 consecutive failed approaches on a task, stop and report what was tried and what's needed — don't silently try more.
 §
