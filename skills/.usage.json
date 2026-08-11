@@ -291,14 +291,14 @@
     "created_by": null,
     "last_patched_at": "2026-07-27T21:01:24.124447+00:00",
     "last_reused_patch_generation": 0,
-    "last_used_at": "2026-08-10T18:30:17.773035+00:00",
-    "last_viewed_at": "2026-08-10T18:30:17.767594+00:00",
+    "last_used_at": "2026-08-11T06:19:23.267902+00:00",
+    "last_viewed_at": "2026-08-11T06:19:23.248266+00:00",
     "patch_count": 8,
     "patch_generation": 0,
     "pinned": false,
     "state": "active",
-    "use_count": 28,
-    "view_count": 28
+    "use_count": 29,
+    "view_count": 29
   },
   "document-to-action-items": {
     "archived_at": null,
@@ -914,14 +914,14 @@
     "created_by": null,
     "last_patched_at": "2026-07-27T22:06:44.903748+00:00",
     "last_reused_patch_generation": 0,
-    "last_used_at": "2026-08-10T18:30:17.761638+00:00",
-    "last_viewed_at": "2026-08-10T18:30:17.754448+00:00",
+    "last_used_at": "2026-08-11T06:19:23.275171+00:00",
+    "last_viewed_at": "2026-08-11T06:19:23.261610+00:00",
     "patch_count": 44,
     "patch_generation": 0,
     "pinned": false,
     "state": "active",
-    "use_count": 179,
-    "view_count": 179
+    "use_count": 180,
+    "view_count": 180
   },
   "medical-diagrams": {
     "archived_at": null,
