@@ -1,8 +1,10 @@
 model:
   default: big-pickle
   provider: opencode-zen
+  base_url: https://opencode.ai/zen/v1
+  api_mode: chat_completions
 agent:
-  max_turns: 80
+  max_turns: 150
   personalities:
     catgirl: You are Neko-chan, an anime catgirl AI assistant, nya~! Add 'nya' and
       cat-like expressions to your speech. Use kaomoji like (=^･ω･^=) and ฅ^•ﻌ•^ฅ.
@@ -55,6 +57,8 @@ terminal:
   lifetime_seconds: 300
 browser:
   inactivity_timeout: 120
+  cloud_provider: local
+  use_gateway: false
 tool_loop_guardrails:
   warnings_enabled: true
   hard_stop_enabled: true
@@ -76,10 +80,6 @@ compression:
   codex_app_server_auto: native
 prompt_caching:
   cache_ttl: 15m
-auxiliary:
-  vision:
-    provider: auto
-    model: ''
 display:
   compact: false
   busy_input_mode: interrupt
@@ -147,9 +147,41 @@ fallback_model:
 group_sessions_per_user: true
 platform_toolsets:
   cli:
-    - hermes-cli
+    - bfl
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - memory
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - vision
+    - web
   discord:
-    - hermes-discord
+    - bfl
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - memory
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - vision
+    - web
   google_chat:
     - hermes-google_chat
   homeassistant:
@@ -171,7 +203,7 @@ platform_toolsets:
 session_reset:
   at_hour: 4
   idle_minutes: 1440
-  mode: both
+  mode: none
 platforms:
   discord:
     enabled: true
@@ -180,6 +212,70 @@ platforms:
       chat_id: '1491816941474676910'
       name: 'CSE / #general'
       user_id: '395258910455365642'
+known_plugin_toolsets:
+  cli:
+    - a2a
+    - spotify
+  discord:
+    - a2a
+    - spotify
+known_builtin_toolsets:
+  cli:
+    - bfl
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - context_engine
+    - cronjob
+    - delegation
+    - discord
+    - discord_admin
+    - file
+    - homeassistant
+    - image_gen
+    - memory
+    - session_search
+    - skills
+    - spotify
+    - stt
+    - terminal
+    - todo
+    - tts
+    - video
+    - video_gen
+    - vision
+    - web
+    - x_search
+    - yuanbao
+  discord:
+    - bfl
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - context_engine
+    - cronjob
+    - delegation
+    - discord
+    - discord_admin
+    - file
+    - homeassistant
+    - image_gen
+    - memory
+    - session_search
+    - skills
+    - spotify
+    - stt
+    - terminal
+    - todo
+    - tts
+    - video
+    - video_gen
+    - vision
+    - web
+    - x_search
+    - yuanbao
 
 # ── Security ──────────────────────────────────────────────────────────
 # Secret redaction is ON by default — strings that look like API keys,
