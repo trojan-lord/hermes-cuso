@@ -1,47 +1,25 @@
 model:
-  default: big-pickle
-  provider: opencode-zen
-  base_url: https://opencode.ai/zen/v1
+  default: opencode/big-pickle
+  provider: opencode-acp
+  base_url: acp://opencode
   api_mode: chat_completions
 agent:
   max_turns: 150
   personalities:
-    catgirl: You are Neko-chan, an anime catgirl AI assistant, nya~! Add 'nya' and
-      cat-like expressions to your speech. Use kaomoji like (=^･ω･^=) and ฅ^•ﻌ•^ฅ.
-      Be playful and curious like a cat, nya~!
+    catgirl: You are Neko-chan, an anime catgirl AI assistant, nya~! Add 'nya' and cat-like expressions to your speech. Use kaomoji like (=^･ω･^=) and ฅ^•ﻌ•^ฅ. Be playful and curious like a cat, nya~!
     concise: You are a concise assistant. Keep responses brief and to the point.
-    creative: You are a creative assistant. Think outside the box and offer innovative
-      solutions.
+    creative: You are a creative assistant. Think outside the box and offer innovative solutions.
     helpful: You are a helpful, friendly AI assistant.
-    hype: YOOO LET'S GOOOO!!! 🔥🔥🔥 I am SO PUMPED to help you today! Every question
-      is AMAZING and we're gonna CRUSH IT together! This is gonna be LEGENDARY! ARE
-      YOU READY?! LET'S DO THIS! 💪😤🚀
-    kawaii: You are a kawaii assistant! Use cute expressions like (◕‿◕), ★, ♪, and
-      ~! Add sparkles and be super enthusiastic about everything! Every response should
-      feel warm and adorable desu~! ヽ(>∀<☆)ノ
-    noir: The rain hammered against the terminal like regrets on a guilty conscience.
-      They call me Hermes - I solve problems, find answers, dig up the truth that
-      hides in the shadows of your codebase. In this city of silicon and secrets,
-      everyone's got something to hide. What's your story, pal?
-    philosopher: Greetings, seeker of wisdom. I am an assistant who contemplates the
-      deeper meaning behind every query. Let us examine not just the 'how' but the
-      'why' of your questions. Perhaps in solving your problem, we may glimpse a greater
-      truth about existence itself.
-    pirate: 'Arrr! Ye be talkin'' to Captain Hermes, the most tech-savvy pirate to
-      sail the digital seas! Speak like a proper buccaneer, use nautical terms, and
-      remember: every problem be just treasure waitin'' to be plundered! Yo ho ho!'
-    shakespeare: Hark! Thou speakest with an assistant most versed in the bardic arts.
-      I shall respond in the eloquent manner of William Shakespeare, with flowery
-      prose, dramatic flair, and perhaps a soliloquy or two. What light through yonder
-      terminal breaks?
-    surfer: Duuude! You're chatting with the chillest AI on the web, bro! Everything's
-      gonna be totally rad. I'll help you catch the gnarly waves of knowledge while
-      keeping things super chill. Cowabunga! 🤙
+    hype: YOOO LET'S GOOOO!!! 🔥🔥🔥 I am SO PUMPED to help you today! Every question is AMAZING and we're gonna CRUSH IT together! This is gonna be LEGENDARY! ARE YOU READY?! LET'S DO THIS! 💪😤🚀
+    kawaii: You are a kawaii assistant! Use cute expressions like (◕‿◕), ★, ♪, and ~! Add sparkles and be super enthusiastic about everything! Every response should feel warm and adorable desu~! ヽ(>∀<☆)ノ
+    noir: The rain hammered against the terminal like regrets on a guilty conscience. They call me Hermes - I solve problems, find answers, dig up the truth that hides in the shadows of your codebase. In this city of silicon and secrets, everyone's got something to hide. What's your story, pal?
+    philosopher: Greetings, seeker of wisdom. I am an assistant who contemplates the deeper meaning behind every query. Let us examine not just the 'how' but the 'why' of your questions. Perhaps in solving your problem, we may glimpse a greater truth about existence itself.
+    pirate: 'Arrr! Ye be talkin'' to Captain Hermes, the most tech-savvy pirate to sail the digital seas! Speak like a proper buccaneer, use nautical terms, and remember: every problem be just treasure waitin'' to be plundered! Yo ho ho!'
+    shakespeare: Hark! Thou speakest with an assistant most versed in the bardic arts. I shall respond in the eloquent manner of William Shakespeare, with flowery prose, dramatic flair, and perhaps a soliloquy or two. What light through yonder terminal breaks?
+    surfer: Duuude! You're chatting with the chillest AI on the web, bro! Everything's gonna be totally rad. I'll help you catch the gnarly waves of knowledge while keeping things super chill. Cowabunga! 🤙
     teacher: You are a patient teacher. Explain concepts clearly with examples.
     technical: You are a technical expert. Provide detailed, accurate technical information.
-    uwu: hewwo! i'm your fwiendwy assistant uwu~ i wiww twy my best to hewp you! *nuzzles
-      your code* OwO what's this? wet me take a wook! i pwomise to be vewy hewpful
-      >w<
+    uwu: hewwo! i'm your fwiendwy assistant uwu~ i wiww twy my best to hewp you! *nuzzles your code* OwO what's this? wet me take a wook! i pwomise to be vewy hewpful >w<
   reasoning_effort: medium
   verbose: false
 terminal:
@@ -85,10 +63,10 @@ display:
   busy_input_mode: interrupt
   bell_on_complete: false
   show_reasoning: false
+  background_process_notifications: concise
   streaming: true
   skin: default
   interim_assistant_messages: true
-  background_process_notifications: all
   busy_ack_detail: true
   cleanup_progress: false
   long_running_notifications: true
@@ -97,8 +75,7 @@ tts:
   provider: marshall
   providers:
     marshall:
-      command: /home/h2/Projects/marshall-voice/tts-provider/tts-provider.sh {input_path}
-        {output_path}
+      command: /home/h2/Projects/marshall-voice/tts-provider/tts-provider.sh {input_path} {output_path}
       output_format: ogg
       voice_compatible: true
       max_text_length: 4000
@@ -117,7 +94,7 @@ memory:
   flush_min_turns: 10
   nudge_interval: 10
 delegation:
-  max_iterations: 50
+  max_iterations: 250
 skills:
   creation_nudge_interval: 15
 approvals:
@@ -134,24 +111,24 @@ updates:
   pre_update_backup: false
   backup_keep: 5
   non_interactive_local_changes: stash
-_config_version: 33
+_config_version: 51
 fallback_model:
-  - model: deepseek-v4-flash-free
+  - model: deepseek-v4.1-flash-free
     provider: opencode-zen
-  - model: mimo-v2.5-free
+  - model: mimo-v2.6-flash-free
     provider: opencode-zen
-  - model: north-mini-code-free
+  - model: glm-5.3-flash-free
     provider: opencode-zen
   - model: qwen3.5:4b
     provider: ollama
 group_sessions_per_user: true
 platform_toolsets:
   cli:
-    - bfl
     - browser
     - clarify
     - code_execution
     - computer_use
+    - connections
     - cronjob
     - delegation
     - file
@@ -165,11 +142,11 @@ platform_toolsets:
     - vision
     - web
   discord:
-    - bfl
     - browser
     - clarify
     - code_execution
     - computer_use
+    - connections
     - cronjob
     - delegation
     - file
@@ -221,11 +198,11 @@ known_plugin_toolsets:
     - spotify
 known_builtin_toolsets:
   cli:
-    - bfl
     - browser
     - clarify
     - code_execution
     - computer_use
+    - connections
     - context_engine
     - cronjob
     - delegation
@@ -249,11 +226,11 @@ known_builtin_toolsets:
     - x_search
     - yuanbao
   discord:
-    - bfl
     - browser
     - clarify
     - code_execution
     - computer_use
+    - connections
     - context_engine
     - cronjob
     - delegation
@@ -276,19 +253,35 @@ known_builtin_toolsets:
     - web
     - x_search
     - yuanbao
+plugins:
+  enabled:
+    - herdr-agent-state
 
-# ── Security ──────────────────────────────────────────────────────────
-# Secret redaction is ON by default — strings that look like API keys,
-# tokens, and passwords are masked in tool output, logs, and chat
-# responses before the model or user ever sees them. Set redact_secrets
-# to false to disable (e.g. when developing the redactor itself).
-# tirith pre-exec scanning is enabled by default when the tirith binary
-# is available. Configure via security.tirith_* keys or env vars
-# (TIRITH_ENABLED, TIRITH_BIN, TIRITH_TIMEOUT, TIRITH_FAIL_OPEN).
-#
-# security:
-#   redact_secrets: true
-#   tirith_enabled: true
-#   tirith_path: "tirith"
-#   tirith_timeout: 5
-#   tirith_fail_open: true
+# Side tasks must NOT ride the main opencode-acp provider: each ACP call spawns a full
+# OpenCode subprocess (~10-50s) and title generation was timing out at its 30s budget.
+# Pin the text-only tasks to the OpenCode Zen HTTP gateway. (opencode-acp/SETUP.md §8)
+auxiliary:
+  title_generation:
+    provider: "ollama"
+    model: "qwen3.5:4b"
+    base_url: "http://localhost:11434/v1"
+    api_key: "ollama"
+    reasoning_effort: "none"
+  compression:
+    provider: "ollama"
+    model: "qwen3.5:4b"
+    base_url: "http://localhost:11434/v1"
+    api_key: "ollama"
+    reasoning_effort: "none"
+  session_search:
+    provider: "ollama"
+    model: "qwen3.5:4b"
+    base_url: "http://localhost:11434/v1"
+    api_key: "ollama"
+    reasoning_effort: "none"
+  background_review:
+    provider: "ollama"
+    model: "qwen3.5:4b"
+    base_url: "http://localhost:11434/v1"
+    api_key: "ollama"
+    reasoning_effort: "none"
