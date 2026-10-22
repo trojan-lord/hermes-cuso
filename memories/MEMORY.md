@@ -2,7 +2,7 @@ GPU: niri display session renders on AMD Renoir iGPU (RADV); GTX 1650 Ti compute
 §
 mumble_monster = 'papa' to Cuso. Pola' Bea' = 'Daddy' / 'Dady big balls'. Two different people, different Discord IDs. Daddy is playful/teasing — tests boundaries, laughs when refused. Dynamic is lighthearted.
 §
-GitHub: trojan-lord. gh auth active. Push only existing repos; ask first. .hermes syncs via cron hermes-backup-sync (sync-hermes-backup.sh clones fresh to /tmp → trojan-lord/hermes-cuso); never push from local clones. SOUL.md ref rule: no verbatim show quotes, only flavor/patterns.
+GitHub: trojan-lord. gh auth active. Push only existing repos; ask first. .hermes syncs via cron hermes-backup-sync (sync-hermes-backup.sh clones fresh to scratch → trojan-lord/hermes-cuso, PUBLIC repo); never push from local clones. Script dereferences skills symlinks (rsync -L, backs up ~/.claude/skills separately) and strips volatile cron telemetry so re-runs report "No changes." SOUL.md ref rule: no verbatim show quotes, only flavor/patterns.
 §
 TTS: marshall provider = Qwen Talker 1.7B, ICL one-shot cloning (clip_07_trimmed_precise); script ~/Projects/marshall-voice/tts-provider/tts-provider.sh. MUST skill_view('marshall-speech-patterns') before TTS. Curl Discord API (never MEDIA: tag); token DISCORD_BOT_TOKEN; voice channel 1526410959772717106.
 §
