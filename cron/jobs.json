@@ -22,18 +22,12 @@
       "schedule_display": "every 360m",
       "repeat": {
         "times": null,
-        "completed": 222
+        "completed": null
       },
       "enabled": true,
-      "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-07-23T16:19:49.825830+05:30",
-      "next_run_at": "2026-10-22T11:37:19.091959+05:30",
-      "last_run_at": "2026-10-21T23:36:26.389031+05:30",
-      "last_status": "ok",
-      "last_error": null,
-      "last_delivery_error": null,
       "deliver": "local",
       "origin": {
         "platform": "discord",
@@ -43,23 +37,7 @@
         "user_id": "395258910455365642"
       },
       "enabled_toolsets": null,
-      "workdir": null,
-      "fire_claim": {
-        "at": "2026-10-22T05:45:20.885064+05:30",
-        "by": "h2:856:3cebce7c56b442d5a01f0e3e777bef0f"
-      },
-      "drift_alerted": true,
-      "failure_streak": 0,
-      "last_dispatch": {
-        "scheduled_at": "2026-10-22T05:36:26.389031+05:30",
-        "dispatched_at": "2026-10-22T05:37:19.042337+05:30",
-        "lateness_seconds": 52.7,
-        "kind": "on_time"
-      },
-      "canonical_completions": [
-        "a66f03b02f5d4c67a12c13c6662b9415"
-      ]
+      "workdir": null
     }
-  ],
-  "updated_at": "2026-10-22T05:45:20.885908+05:30"
+  ]
 }

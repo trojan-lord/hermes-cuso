@@ -73,7 +73,20 @@ fi
 # Job definitions + run history only. Volatile runtime state (lock files,
 # ticker heartbeats, admission receipts, execution databases) is excluded.
 mkdir -p "$REPO_DIR/cron"
-cp "$HERMES_HOME/cron/jobs.json" "$REPO_DIR/cron/jobs.json"
+# Keep the job *definitions* but strip per-minute runtime telemetry
+# (fire_claim, next_run_at, dispatch counters). Without this, every run
+# produced a spurious commit even when nothing meaningful had changed.
+jq '
+    del(.updated_at)
+    | .jobs = [ .jobs[]
+        | del(.state, .last_run_at, .next_run_at, .last_status,
+               .last_error, .last_delivery_error, .fire_claim,
+               .drift_alerted, .failure_streak, .last_dispatch,
+               .canonical_completions)
+        | if .repeat then .repeat.completed = null else . end
+      ]
+' "$HERMES_HOME/cron/jobs.json" > "$REPO_DIR/cron/jobs.json" 2>/dev/null \
+  || cp "$HERMES_HOME/cron/jobs.json" "$REPO_DIR/cron/jobs.json"
 if [ -d "$HERMES_HOME/cron/output" ]; then
     # Append-only: keep history that is already in the repo.
     rsync -a "$HERMES_HOME/cron/output/" "$REPO_DIR/cron/output/"
